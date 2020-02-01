@@ -13,7 +13,7 @@ EXP = np.logspace(0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
 EXP_X = np.logspace(0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)
 
 
-class Expression():
+class Expr():
     """
     Expression class
     """
@@ -67,11 +67,11 @@ class Expression():
 
     def __add__(self, other):
         if isinstance(other, str):
-            other = Expression(other)
+            other = Expr(other)
         new_mat = np.concatenate([
             self.mat, other.mat
         ], axis=0)
-        return Expression("", new_mat)
+        return Expr("", new_mat)
 
     def get_packed_mat(self):
         mat = self.mat[:, 1:-1]
@@ -86,7 +86,7 @@ class Expression():
         mat = np.copy(self.mat)
         x_mat = mat[:, 1:-1]
         mat[:, 1:-1] = x_mat[:, ::-1]
-        return Expression("", mat)
+        return Expr("", mat)
 
     def get_all_out(self):
         """
@@ -133,7 +133,7 @@ class Expression():
         return " + ".join(arr_expr)
 
 
-class RegExprBatch():
+class RegBatch():
     """
     Compute batch of expressions in a more effective way.
     """
@@ -147,7 +147,7 @@ class RegExprBatch():
         if len(list_exprs) == 0:
             return
         if isinstance(list_exprs[0], str):
-            list_exprs = [Expression(e) for e in list_exprs]
+            list_exprs = [Expr(e) for e in list_exprs]
 
         list_n_terms = [e.n_terms for e in list_exprs]
         if min(list_n_terms) != max(list_n_terms):
@@ -193,7 +193,7 @@ class RegExprBatch():
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
                 mat[0, 1:-1] = unpack_elem(i, LEN_ALPHA-2)
                 mat[0, -1] = True
-                expr = Expression("", mat)
+                expr = Expr("", mat)
                 # print(e)
                 # print(e.get_all_out().astype(np.int))
                 cache_t[i, :] = expr.get_all_out()
@@ -208,7 +208,7 @@ class ExprBatch():
         if len(list_exprs) == 0:
             return
         if isinstance(list_exprs[0], str):
-            list_exprs = list(map(Expression, list_exprs))
+            list_exprs = list(map(Expr, list_exprs))
 
         list_n_terms = np.array([e.n_terms for e in list_exprs])
 
@@ -233,7 +233,7 @@ class ExprBatch():
         """
         res = []
         for list_exprs in self.list_reg_exprs:
-            reg_expr_batch = RegExprBatch(list_exprs)
+            reg_expr_batch = RegBatch(list_exprs)
             res.append(reg_expr_batch.run())
         res = torch.cat(res, dim=0)
         res = res[self.list_inverse_ids, :]
@@ -254,7 +254,6 @@ if __name__ == "__main__":
         test = expr_batch.run().numpy()
         if (valid == test).all():
             print("Right")
-        """
         list_exprs = [
             "x0",
             "x1x2+x3",
@@ -263,7 +262,7 @@ if __name__ == "__main__":
         ]
         valid = []
         for expr in list_exprs:
-            expr = Expression(expr)
+            expr = Expr(expr)
             valid.append(expr.get_all_out())
         valid = np.array(valid)
 
@@ -271,5 +270,12 @@ if __name__ == "__main__":
         test = expr_batch.run().numpy()
         if (valid == test).all():
             print("Right")
+        """
+        list_exprs = [
+            "x4+x4x5+x5x6"
+        ]
+        expr_batch = ExprBatch(list_exprs)
+        test = expr_batch.run().long()
+        print(test)
 
     main()

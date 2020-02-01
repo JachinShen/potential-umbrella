@@ -23,7 +23,7 @@ class Group():
             print("No expression in the group!")
             return
         if isinstance(list_exprs[0], str):
-            list_exprs = list(map(ep.Expression, list_exprs))
+            list_exprs = list(map(ep.Expr, list_exprs))
         for expr, p_term in zip(list_exprs[::-1], self.pair_base_terms):
             list_exprs.append(expr.get_pair_expr() + p_term)
         self.exprs = list_exprs
@@ -68,10 +68,17 @@ class GroupBatch():
     def preprocess_group(self, list_exprs):
         """Preprocess"""
         if isinstance(list_exprs[0], str):
-            list_exprs = list(map(ep.Expression, list_exprs))
+            list_exprs = list(map(ep.Expr, list_exprs))
         for expr, p_term in zip(list_exprs[::-1], self.pair_base_terms):
             list_exprs.append(expr.get_pair_expr() + p_term)
         return list_exprs
+
+    def run(self):
+        """Run"""
+        list_exprs = list(itertools.chain(*self.list_grps))
+        res = ep.ExprBatch(list_exprs).run()
+        res = res.reshape(self.batch_size, 2*self.n_expr, -1).long()
+        return res
 
     def test_permutation(self):
         """Test"""

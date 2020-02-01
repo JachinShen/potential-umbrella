@@ -2,7 +2,7 @@
 Step 1: Cache balance expressions
 """
 from itertools import permutations
-from expression import Expression
+import expression as ep
 
 def main():
     """
@@ -19,9 +19,9 @@ def main():
     cnt = 0
     for b_term in base_terms:
         cand_exprs = []
-        for terms in permutations(cand_terms, 3):
+        for terms in permutations(cand_terms, 2):
             str_expr = "+".join(list(terms) + [b_term])
-            expr = Expression(str_expr)
+            expr = ep.Expr(str_expr)
             if expr.test_balance():
                 cand_exprs.append(str_expr)
                 cnt += 1
