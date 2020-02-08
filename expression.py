@@ -1,5 +1,5 @@
 """
-Expression.py
+expression.py
 """
 import os
 import numpy as np
@@ -8,39 +8,49 @@ from utils import *
 
 ALPHABET = ["zero", "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "one"]
 LEN_ALPHA = len(ALPHABET)
-N_X = 2**(LEN_ALPHA - 2)
-EXP = np.logspace(0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
-EXP_X = np.logspace(0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)
+N_X = 2**(LEN_ALPHA - 2)  # number of possible values of X
+EXP = np.logspace(0, LEN_ALPHA-1, LEN_ALPHA, base=2,
+                  dtype=np.int64)  # used to pack whole alphabet
+EXP_X = np.logspace(0, LEN_ALPHA-3, LEN_ALPHA-2, base=2,
+                    dtype=np.int64)  # used to pack x
 
 
 class Expr():
     """
-    Expression class
+    Class to represent a single expression.
     """
 
     def __init__(self, str_expr="", mat=None):
         """
-        Read string of expression
+        Init the expression with string or matrix
 
         Arguments
         ------
-        s:String
+        str_expr:String
             Human readable expression
+        mat:numpy.array
+            Matrix from other expression
         """
-        if mat is not None:
-            self.mat = mat
-        else:
+        if mat is None:
             terms = str_expr.split("+")
             n_terms = len(terms)
-            self.mat = np.zeros([n_terms, LEN_ALPHA], dtype=np.bool)
+            """
+            encode string
+            row: a term in the expression
+            col: one-hot code of the term
+            """
+            mat = np.zeros([n_terms, LEN_ALPHA], dtype=np.bool)
             for i, term in enumerate(terms):
                 for j, char in enumerate(ALPHABET):
                     if char in term:
-                        self.mat[i, j] = True
-            self.mat[:, -1] = True
-        self.n_terms = len(self.mat)
-        if self.n_terms > 0:
-            mat = self.mat.astype(np.int64)
+                        mat[i, j] = True
+            mat[:, -1] = True  # every term has "one"
+        n_terms = len(mat)
+        """
+        Remove duplicate terms and sort for convenience
+        """
+        if n_terms > 0:
+            mat = mat.astype(np.int64)
             uniq_arr, cnt = np.unique(
                 mat, return_counts=True, axis=0
             )
@@ -48,10 +58,15 @@ class Expr():
             mat_deg = mat.sum(axis=1)
             mat_exp = np.multiply(mat, EXP).sum(axis=1)
             arg_sort = np.lexsort((mat_exp, mat_deg))
-            self.mat = mat[arg_sort].astype(np.bool)
-        self.mask = ~self.mat.astype(np.bool)
+            mat = mat[arg_sort].astype(np.bool)
+        self.mat = mat
+        self.n_terms = len(mat)
+        self.mask = ~mat.astype(np.bool)
 
     def __call__(self, value):
+        """
+        Return the value of input x
+        """
         n_axis = len(value.shape)
         if n_axis == 1:  # make batch size = 1
             value = value[np.newaxis, :]
@@ -68,12 +83,11 @@ class Expr():
     def __add__(self, other):
         if isinstance(other, str):
             other = Expr(other)
-        new_mat = np.concatenate([
-            self.mat, other.mat
-        ], axis=0)
+        new_mat = np.concatenate([self.mat, other.mat], axis=0)
         return Expr("", new_mat)
 
     def get_packed_mat(self):
+        """Pack x"""
         mat = self.mat[:, 1:-1]
         return pack_arr(mat)
 
@@ -191,7 +205,7 @@ class RegBatch():
             cache_t = np.zeros([n_terms, n_values], dtype=np.bool)
             for i in range(n_terms):
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
-                mat[0, 1:-1] = unpack_elem(i, LEN_ALPHA-2)
+                mat[0, 1:-1] = unpack_scale(i, LEN_ALPHA-2)
                 mat[0, -1] = True
                 expr = Expr("", mat)
                 # print(e)
@@ -200,10 +214,12 @@ class RegBatch():
             np.save(cache_file, cache_t)
             return cache_t
 
+
 class ExprBatch():
     """
     ExprBatch
     """
+
     def __init__(self, list_exprs):
         if len(list_exprs) == 0:
             return
@@ -238,6 +254,7 @@ class ExprBatch():
         res = torch.cat(res, dim=0)
         res = res[self.list_inverse_ids, :]
         return res
+
 
 if __name__ == "__main__":
     def main():

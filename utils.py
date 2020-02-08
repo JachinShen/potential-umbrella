@@ -1,13 +1,15 @@
-"""
-Utils
+"""Utils
+Packs binary bits into scales and reverse.
 """
 import numpy as np
 
 
-def unpack_elem(elem, n_bits):
+def unpack_scale(elem, n_bits):
+    """Unpack a scale to array of bits"""
     return np.array(
         [elem & (0x01 << i) for i in range(n_bits)[::-1]], dtype=np.bool
     )
+
 
 def pack_bits(bits):
     n_bits = len(bits)
@@ -21,6 +23,7 @@ def unpack_arr(arr, n_bits):
     for i, elem in enumerate(arr):
         unpacked_arr[i] = np.array([elem & j for j in mask], dtype=np.bool)
     return unpacked_arr
+
 
 def pack_arr(arr):
     n_bits = arr.shape[1]
@@ -42,4 +45,4 @@ if __name__ == "__main__":
     #print(pack_bits(unpack_elem(1, 8)))
     #print(pack_bits(unpack_elem(254, 8)))
     print(pack_arr(unpack_arr(np.array([0, 1, 253]), 8)))
-    #print(get_all_unpacked_bits(8))
+    # print(get_all_unpacked_bits(8))

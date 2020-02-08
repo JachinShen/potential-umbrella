@@ -40,7 +40,7 @@ class PermFilter():
     def run(self):
         """run"""
         cnt = 0
-        batch_size = 1000
+        batch_size = 10000
         list_ids = []
         for ids in product(*[list(range(self.__n_cand)) for i in range(self.__n_y // 2)]):
             cnt += 1
@@ -48,16 +48,24 @@ class PermFilter():
             list_ids.append(ids + ids[::-1])
             if cnt % batch_size == 0:
                 print("[{}]: Have tested {} samples!".format(time.time(), cnt))
-                res = self.get_batch_grp_v(list_ids)
-                is_perm = self.test_permutation(res)
-                if is_perm.any():
-                    id_grps = is_perm.nonzero().cpu().flatten()
-                    print(id_grps)
-                    list_ids = [list_ids[i] for i in id_grps]
-                    for grp_expr in self.get_batch_grp_expr(list_ids):
-                        print(grp_expr)
+                if self.test(list_ids):
                     break
                 list_ids = []
+        if cnt % batch_size != 0:
+            self.test(list_ids)
+
+    def test(self, list_ids: list):
+        """Test"""
+        res = self.get_batch_grp_v(list_ids)
+        is_perm = self.test_permutation(res)
+        if is_perm.any():
+            id_grps = is_perm.nonzero().cpu().flatten()
+            print(id_grps)
+            print_ids = [list_ids[i] for i in id_grps]
+            for ids in print_ids:
+                print(self.get_grp_expr(ids))
+            return True
+        return False
 
     def get_grp_expr(self, ids: list):
         """Get group expression"""
