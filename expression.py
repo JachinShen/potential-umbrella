@@ -68,7 +68,7 @@ class Expr():
         Return the value of input x
         """
         n_axis = len(value.shape)
-        if n_axis == 1:  # make batch size = 1
+        if n_axis == 1:  # make bunpack_arr_scale= 1
             value = value[np.newaxis, :]
         batch_sz = len(value)
         ex_mask = np.repeat(np.expand_dims(
@@ -89,7 +89,7 @@ class Expr():
     def get_packed_mat(self):
         """Pack x"""
         mat = self.mat[:, 1:-1]
-        return pack_arr(mat)
+        return pack_arr_bits(mat)
 
     def get_pair_expr(self):
         """
