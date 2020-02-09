@@ -51,7 +51,7 @@ class Expr():
                     if char in term:
                         mat[i, j] = True
             # Every term implictly has char "one".
-            mat[:, -1] = True  
+            mat[:, -1] = True
         # Else use the passed mat.
         n_terms = len(mat)
 
@@ -78,7 +78,7 @@ class Expr():
         # See __call__ for reason of inverse.
         self.mask = ~mat.astype(np.bool)
 
-    def __call__(self, input_x):
+    def __call__(self, input_x: np.array):
         """ Compute the value of expression on the input x.
 
         Args:
@@ -91,7 +91,7 @@ class Expr():
         if n_axis == 1:
             input_x = input_x[np.newaxis, :]
 
-        # Repeat mask and input x 
+        # Repeat mask and input x
         # to compute at once.
         # For example:
         # mask = [x1, x0x2]
@@ -107,13 +107,14 @@ class Expr():
         batch_sz = len(input_x)
         ex_mask = np.repeat(np.expand_dims(
             self.mask, axis=0), batch_sz, axis=0)
-        ex_input_x = np.repeat(np.expand_dims(input_x, axis=1), self.n_terms, axis=1)
+        ex_input_x = np.repeat(np.expand_dims(
+            input_x, axis=1), self.n_terms, axis=1)
 
         # Xor -> summation of terms.
         # And -> product of characters.
         # Or:
         # A term == 0 iff it has a character of value 0.
-        # A term == 1 iff 
+        # A term == 1 iff
         # it does **not** have this character (mask)
         # or the value of this character is 1 (input_x).
         #
@@ -136,66 +137,64 @@ class Expr():
         new_mat = np.concatenate([self.mat, other.mat], axis=0)
         return Expr("", new_mat)
 
-    def get_packed_mat(self):
+    def get_packed_x(self):
+        """Get packed x.
+
+        Returns:
+            An integer 1-d numpy array of size [n_terms].
         """
-        """
-        mat = self.mat[:, 1:-1]
-        return utils.pack_arr_bits(mat)
+        x = self.mat[:, 1:-1]
+        return utils.pack_arr_bits(x)
 
     def get_pair_expr(self):
-        """
-        Return pair expression
+        """ Get pair expression
 
-        x0 -> x7
+        x_i <-> x_(n-i)
+
+        Returns:
+            A paired Expr instance.
         """
         mat = np.copy(self.mat)
-        x_mat = mat[:, 1:-1]
-        mat[:, 1:-1] = x_mat[:, ::-1]
+        x = mat[:, 1:-1]
+        mat[:, 1:-1] = x[:, ::-1]
         return Expr("", mat)
 
     def get_all_out(self):
+        """ Get output on all possible input.
         """
-        Get output on all possible input.
-        """
-        return self.__call__(self.get_all_value())
+        return self.__call__(self.get_all_input())
 
     def test_balance(self):
+        """ Test whether the output has equal number of 0/1.
         """
-        Test whether the output has equal number of 0/1
-        """
-        all_value = self.get_all_value()
-        out = self.__call__(all_value).astype(np.int64)
-        sum_out = out.sum()
-        return sum_out * 2 == out.size
+        out = self.get_all_out().astype(np.int64)
+        return 2*out.sum() == out.size
 
-    def get_all_value(self):
+    def get_all_input(self):
+        """Get all possible input values.
         """
-        Give all possible value
-        """
-        all_value = np.zeros(
-            [2**(LEN_ALPHA - 2), LEN_ALPHA], dtype=np.bool)
-        all_value[:, 0] = False
-        all_value[:, 1:-1] = utils.get_all_unpacked_bits(LEN_ALPHA - 2)
-        all_value[:, -1] = True
-        return all_value
+        input_x = np.zeros(
+            [N_INPUT_X, LEN_ALPHA], dtype=np.bool)
+        input_x[:, 0] = False  # "zero" = 0
+        input_x[:, 1:-1] = utils.get_all_unpacked_bits(N_X)
+        input_x[:, -1] = True  # "one" = 1
+        return input_x
 
     def __repr__(self):
+        """Get human readable string.
         """
-        Print human readable expression.
-        """
-        arr_expr = []
+        list_str_terms = []
         for arr_term in self.mat:
-            exist_chars_id = np.nonzero(arr_term)[0]
-            if len(exist_chars_id) == 1 and exist_chars_id[0] == LEN_ALPHA - 1:
-                # only one
-                arr_expr.append("one")
-            else:
-                # other characters exist, ignore one
-                exist_chars = [ALPHABET[i] for i in exist_chars_id[:-1]]
-                str_term = " ".join(exist_chars)
-                arr_expr.append(str_term)
+            char_id = np.nonzero(arr_term)[0]
+            if len(char_id) == 1 and char_id[0] == LEN_ALPHA - 1:  # only "one"
+                list_str_terms.append("one")
+            else:  # other characters exist, ignore "one"
+                # char_id[-1]: "one"
+                list_str_chars = [ALPHABET[i] for i in char_id[:-1]]
+                str_term = " ".join(list_str_chars)
+                list_str_terms.append(str_term)
 
-        return " + ".join(arr_expr)
+        return " + ".join(list_str_terms)
 
 
 class RegBatch():
@@ -203,7 +202,7 @@ class RegBatch():
     Compute batch of expressions in a more effective way.
     """
 
-    def __init__(self, list_exprs):
+    def __init__(self, list_exprs: list):
         """
         Init with list of expressions
         """
@@ -222,7 +221,7 @@ class RegBatch():
         n_terms = list_n_terms[0]
         arr_exprs = np.zeros([batch_sz, n_terms], dtype=np.int64)
         for i, expr in enumerate(list_exprs):
-            arr_exprs[i] = expr.get_packed_mat()
+            arr_exprs[i] = Expr.get_packed_x(expr)
 
         #cache_t = cache_t.expand(batch_sz, N_X, N_X)
         arr_exprs = torch.from_numpy(arr_exprs).to(device)
