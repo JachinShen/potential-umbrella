@@ -19,8 +19,8 @@ EXP_X = np.logspace(
     0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
 
 
-class Expr():
-    """ Class to represent a single expression.
+class Expr(object):
+    """Class to represent a single expression.
 
     Attributes:
         mat: A boolean 2-d numpy array encoding the expression.
@@ -197,14 +197,28 @@ class Expr():
         return " + ".join(list_str_terms)
 
 
-class RegBatch():
-    """
-    Compute batch of expressions in a more effective way.
+class RegBatch(object):
+    """Class to compute batch of expressions in a more effective way.
+
+    It is okay to compute expressions one by one
+    but it is more effective to compute them in batch.
+    This class compute batch of expressions
+    with the same number of terms.
+    The limitation on the number of terms provides
+    convenience and speed.
+    It also has wide coverage
+    because most expressions have similar numbers of term
+    in the later search.
+
+    Attributes:
+        cache_t: Cached value of each term on each input.
+        batch_sz: Batch size.
+        n_terms: Number of terms.
+        arr_exprs: A integer pytorch tensor encoding expressions.
     """
 
     def __init__(self, list_exprs: list):
-        """
-        Init with list of expressions
+        """Init with list of expressions of type string or Expr
         """
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         cache_t = torch.from_numpy(self.cache_terms()).to(device)
@@ -217,16 +231,13 @@ class RegBatch():
         if min(list_n_terms) != max(list_n_terms):
             print("Only accept expressions with equal number of terms!")
             return
+
         batch_sz = len(list_exprs)
         n_terms = list_n_terms[0]
         arr_exprs = np.zeros([batch_sz, n_terms], dtype=np.int64)
         for i, expr in enumerate(list_exprs):
             arr_exprs[i] = Expr.get_packed_x(expr)
-
-        #cache_t = cache_t.expand(batch_sz, N_X, N_X)
         arr_exprs = torch.from_numpy(arr_exprs).to(device)
-        #arr_exprs = arr_exprs.expand(batch_sz, N_X, n_terms)
-        # print(arr_exprs)
 
         self.cache_t = cache_t
         self.batch_sz = batch_sz
@@ -234,32 +245,35 @@ class RegBatch():
         self.arr_exprs = arr_exprs
 
     def run(self):
+        """Get outputs on all possible inputs.
+
+        Returns:
+            A boolean torch tensor of size [batch, N_INPUT_X].
         """
-        Run
-        """
-        res = self.cache_t[self.arr_exprs.flatten()].reshape(
-            self.batch_sz, self.n_terms, N_INPUT_X)
+        # Each element in arr_exprs means the code of a cached term.
+        # Pick the output of terms from cache.
+        res = self.cache_t[self.arr_exprs.flatten()]
+        res = res.reshape(self.batch_sz, self.n_terms, N_INPUT_X)
+        # Xor the terms
         res = torch.sum(res, dim=1) % 2
         return res.to(torch.bool)
 
     @staticmethod
     def cache_terms():
-        """
-        Cache terms
+        """Cache the outputs of the terms on all possible inputs.
         """
         cache_file = "cache_terms-{}.npy".format(LEN_ALPHA)
         if os.path.exists(cache_file):
             return np.load(cache_file)
         else:
-            n_values = n_terms = N_INPUT_X
-            cache_t = np.zeros([n_terms, n_values], dtype=np.bool)
+            n_inputs = n_terms = N_INPUT_X
+            cache_t = np.zeros([n_terms, n_inputs], dtype=np.bool)
             for i in range(n_terms):
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
-                mat[0, 1:-1] = utils.unpack_scale(i, LEN_ALPHA-2)
-                mat[0, -1] = True
+                mat[0, 1] = False # "zero" = 0
+                mat[0, 1:-1] = utils.unpack_scale(i, N_X)
+                mat[0, -1] = True # "one" = 1
                 expr = Expr("", mat)
-                # print(e)
-                # print(e.get_all_out().astype(np.int))
                 cache_t[i, :] = expr.get_all_out()
             np.save(cache_file, cache_t)
             return cache_t
