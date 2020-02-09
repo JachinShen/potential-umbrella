@@ -214,7 +214,7 @@ class RegBatch(object):
         cache_t: Cached value of each term on each input.
         batch_sz: Batch size.
         n_terms: Number of terms.
-        arr_exprs: A integer pytorch tensor encoding expressions.
+        arr_exprs: A integer torch tensor encoding expressions.
     """
 
     def __init__(self, list_exprs: list):
@@ -280,8 +280,14 @@ class RegBatch(object):
 
 
 class ExprBatch():
-    """
-    ExprBatch
+    """Class to compute arbitrary expressions effectively.
+
+    This class extends RegExpr and
+    compute expressions with arbitrary number of terms.
+
+    Attributes:
+        list_reg_exprs: List of RegExpr instances for computation.
+        list_inverse_ids: List of integer to restore the original order.
     """
 
     def __init__(self, list_exprs):
@@ -292,15 +298,23 @@ class ExprBatch():
 
         list_n_terms = np.array([e.n_terms for e in list_exprs])
 
+        # Combine the expressions with the same numbers of terms.
+        # Record index to restore the orders later.
         list_reg_exprs = []
         list_ids = []
+        # For each number of terms.
         for n_terms in np.unique(list_n_terms):
+            # Find all expressions with **n_terms** terms.
             new_list_id = (list_n_terms == n_terms).nonzero()[0]
             new_list_exprs = [list_exprs[i] for i in new_list_id]
             list_reg_exprs.append(new_list_exprs)
             list_ids.append(new_list_id)
         self.list_reg_exprs = list_reg_exprs
 
+        # list_ids records the index in the original list.
+        # list_reg_exprs[i] <-> list_exprs[list_ids[i]]
+        # Inverse it to get output in original order.
+        # list_reg_exprs[list_inverse_ids[i]] <-> list_exprs[i]
         list_ids = np.concatenate(list_ids, axis=0)
         list_inverse_ids = np.zeros_like(list_ids)
         for i, expr_id in enumerate(list_ids):
@@ -308,8 +322,10 @@ class ExprBatch():
         self.list_inverse_ids = list_inverse_ids
 
     def run(self):
-        """
-        Run
+        """Get all output of RegExpr in original order.
+
+        Returns:
+            A torch tensor of size [batch, N_INPUT_X]
         """
         res = []
         for list_exprs in self.list_reg_exprs:
