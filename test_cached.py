@@ -13,7 +13,7 @@ class PermFilter():
     """PermFilter"""
     pair_base_terms = ["x4", "x5", "x6", "x7"]
     n_expr = len(pair_base_terms)
-    standard = torch.arange(ep.N_X, dtype=torch.int64)
+    standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self):
         """Init"""
@@ -83,7 +83,7 @@ class PermFilter():
         """Get batch group value"""
         batch_size = len(list_ids)
         ids = torch.Tensor(list_ids).long()
-        res = torch.zeros(batch_size, self.__n_y, ep.N_X, dtype=torch.bool)
+        res = torch.zeros(batch_size, self.__n_y, ep.N_INPUT_X, dtype=torch.bool)
         for i in range(self.__n_y):
             res[:, i, :] = self.__v_cand[i, ids[:, i], :]
         return res

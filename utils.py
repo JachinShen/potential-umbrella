@@ -1,5 +1,5 @@
 """Utils
-Packs binary bits into scales and reverse.
+Pack binary bits into scales and reverse.
 """
 import numpy as np
 

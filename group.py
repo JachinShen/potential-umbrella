@@ -53,7 +53,7 @@ class GroupBatch():
     """
     pair_base_terms = ["x4", "x5", "x6", "x7"]
     n_expr = len(pair_base_terms)
-    standard = torch.arange(ep.N_X, dtype=torch.int64)
+    standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
         """Init"""

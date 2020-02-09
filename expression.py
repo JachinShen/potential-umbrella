@@ -1,82 +1,132 @@
-"""
-expression.py
+""" expression.py
+
+Classes to represent a single expression, 
+batch of expressions with same number of terms and
+batch of expressions with arbitrary number of terms.
 """
 import os
 import numpy as np
 import torch
-from utils import *
+import utils
 
-ALPHABET = ["zero", "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "one"]
+N_X = 8
+ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
 LEN_ALPHA = len(ALPHABET)
-N_X = 2**(LEN_ALPHA - 2)  # number of possible values of X
-EXP = np.logspace(0, LEN_ALPHA-1, LEN_ALPHA, base=2,
-                  dtype=np.int64)  # used to pack whole alphabet
-EXP_X = np.logspace(0, LEN_ALPHA-3, LEN_ALPHA-2, base=2,
-                    dtype=np.int64)  # used to pack x
+N_INPUT_X = 2**N_X  # number of possible values of X
+EXP_ALPHA = np.logspace(
+    0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)  # used to pack whole alphabet
+EXP_X = np.logspace(
+    0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
 
 
 class Expr():
-    """
-    Class to represent a single expression.
+    """ Class to represent a single expression.
+
+    Attributes:
+        mat: A boolean 2-d numpy array encoding the expression.
+        n_terms: The number of terms in the expression.
+        mask: A boolean 2-d numpy array for computation.
     """
 
     def __init__(self, str_expr="", mat=None):
-        """
-        Init the expression with string or matrix
+        """ Init the expression with string or matrix
 
-        Arguments
-        ------
-        str_expr:String
-            Human readable expression
-        mat:numpy.array
-            Matrix from other expression
+        Args:
+            str_expr: A string contain the human-readable expression.
+            mat: A boolean 2-d numpy array encoding the expression.
+                Used to pass self.mat across instances of this class.
+                Saves time for parsing str_expr.
         """
+        # Init from string if no mat provided.
         if mat is None:
             terms = str_expr.split("+")
             n_terms = len(terms)
-            """
-            encode string
-            row: a term in the expression
-            col: one-hot code of the term
-            """
+            # one-hot encoding:
+            # row -> term
+            # col -> character
+            # True if the term has this character
             mat = np.zeros([n_terms, LEN_ALPHA], dtype=np.bool)
             for i, term in enumerate(terms):
                 for j, char in enumerate(ALPHABET):
                     if char in term:
                         mat[i, j] = True
-            mat[:, -1] = True  # every term has "one"
+            # Every term implictly has char "one".
+            mat[:, -1] = True  
+        # Else use the passed mat.
         n_terms = len(mat)
-        """
-        Remove duplicate terms and sort for convenience
-        """
+
+        # Arrange mat.
         if n_terms > 0:
+            # Remove the duplicate terms.
+            # Convert to integer for summation later.
             mat = mat.astype(np.int64)
             uniq_arr, cnt = np.unique(
                 mat, return_counts=True, axis=0
             )
+            # Leave the terms appearing in odd times.
             mat = uniq_arr[cnt % 2 == 1]
+
+            # Sort the terms for convenience in reading.
+            # First compare the number of characters.
+            # If equal, X0 < ... < Xi.
             mat_deg = mat.sum(axis=1)
-            mat_exp = np.multiply(mat, EXP).sum(axis=1)
+            mat_exp = np.multiply(mat, EXP_ALPHA).sum(axis=1)
             arg_sort = np.lexsort((mat_exp, mat_deg))
             mat = mat[arg_sort].astype(np.bool)
         self.mat = mat
         self.n_terms = len(mat)
+        # See __call__ for reason of inverse.
         self.mask = ~mat.astype(np.bool)
 
-    def __call__(self, value):
+    def __call__(self, input_x):
+        """ Compute the value of expression on the input x.
+
+        Args:
+            input_x: A 1-d numpy array containing the input value of x of size [N_INPUT_X].
+                Or a 2-d numpy array containing batches of inputs of size [batch, N_INPUT_X].
         """
-        Return the value of input x
-        """
-        n_axis = len(value.shape)
-        if n_axis == 1:  # make bunpack_arr_scale= 1
-            value = value[np.newaxis, :]
-        batch_sz = len(value)
+        n_axis = len(input_x.shape)
+        # Make the 1-d array to 2-d array
+        # by setting batch = 1.
+        if n_axis == 1:
+            input_x = input_x[np.newaxis, :]
+
+        # Repeat mask and input x 
+        # to compute at once.
+        # For example:
+        # mask = [x1, x0x2]
+        # input_x = [x1=1, x0=x2=1]
+        # ex_mask = [
+        #   [x1, x0x2],
+        #   [x1, x0x2],
+        # ]
+        # ex_input_x = [
+        #   [x1=1, x1=1],
+        #   [x0=x2=1, x0=x2=1],
+        # ]
+        batch_sz = len(input_x)
         ex_mask = np.repeat(np.expand_dims(
             self.mask, axis=0), batch_sz, axis=0)
-        ex_v = np.repeat(np.expand_dims(value, axis=1), self.n_terms, axis=1)
+        ex_input_x = np.repeat(np.expand_dims(input_x, axis=1), self.n_terms, axis=1)
+
+        # Xor -> summation of terms.
+        # And -> product of characters.
+        # Or:
+        # A term == 0 iff it has a character of value 0.
+        # A term == 1 iff 
+        # it does **not** have this character (mask)
+        # or the value of this character is 1 (input_x).
+        #
+        # For example:
+        # term "x0x2" -> [0, 1, 0, 1, 1]
+        # mask = [1, 0, 1, 0, 0]
+        # input1 = [0, 1, 0, 1, 1] # x0=x2=1
+        # mask | input1 = [1, 1, 1, 1, 1] # x0x2=1
+        # input2 = [0, 1, 0, 0, 1] # x0=1, x2=0
+        # mask | input2 = [1, 1, 1, 0, 1] # x0x2=0
         return np.bitwise_xor.reduce(
             np.bitwise_and.reduce(
-                np.bitwise_or(ex_mask, ex_v), axis=2
+                np.bitwise_or(ex_mask, ex_input_x), axis=2
             ), axis=1
         )
 
@@ -87,9 +137,10 @@ class Expr():
         return Expr("", new_mat)
 
     def get_packed_mat(self):
-        """Pack x"""
+        """
+        """
         mat = self.mat[:, 1:-1]
-        return pack_arr_bits(mat)
+        return utils.pack_arr_bits(mat)
 
     def get_pair_expr(self):
         """
@@ -124,7 +175,7 @@ class Expr():
         all_value = np.zeros(
             [2**(LEN_ALPHA - 2), LEN_ALPHA], dtype=np.bool)
         all_value[:, 0] = False
-        all_value[:, 1:-1] = get_all_unpacked_bits(LEN_ALPHA - 2)
+        all_value[:, 1:-1] = utils.get_all_unpacked_bits(LEN_ALPHA - 2)
         all_value[:, -1] = True
         return all_value
 
@@ -188,7 +239,7 @@ class RegBatch():
         Run
         """
         res = self.cache_t[self.arr_exprs.flatten()].reshape(
-            self.batch_sz, self.n_terms, N_X)
+            self.batch_sz, self.n_terms, N_INPUT_X)
         res = torch.sum(res, dim=1) % 2
         return res.to(torch.bool)
 
@@ -201,11 +252,11 @@ class RegBatch():
         if os.path.exists(cache_file):
             return np.load(cache_file)
         else:
-            n_values = n_terms = N_X
+            n_values = n_terms = N_INPUT_X
             cache_t = np.zeros([n_terms, n_values], dtype=np.bool)
             for i in range(n_terms):
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
-                mat[0, 1:-1] = unpack_scale(i, LEN_ALPHA-2)
+                mat[0, 1:-1] = utils.unpack_scale(i, LEN_ALPHA-2)
                 mat[0, -1] = True
                 expr = Expr("", mat)
                 # print(e)
