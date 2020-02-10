@@ -1,5 +1,6 @@
-"""
-Group of expression
+"""group.py
+
+Classes to represent a group of equations.
 """
 
 import time
@@ -9,40 +10,43 @@ import numpy as np
 import expression as ep
 
 
-class Group():
+class Group(object):
+    """Class to represent a group of equations.
+
+    Attributes:
+        orth_terms: Terms to make the permutation orthogonal.
+        exprs: List of Expr instances.
     """
-    Group of expression
-    """
-    pair_base_terms = ["x4", "x5", "x6", "x7"]
+    orth_terms = ["x{}".format(i) for i in range(ep.N_X//2, ep.N_X)]
 
     def __init__(self, list_exprs: list):
-        """
-        Init with list of expressions
-        """
         if len(list_exprs) == 0:
             print("No expression in the group!")
             return
         if isinstance(list_exprs[0], str):
             list_exprs = list(map(ep.Expr, list_exprs))
-        for expr, p_term in zip(list_exprs[::-1], self.pair_base_terms):
+        # Append the second half.
+        for expr, p_term in zip(list_exprs[::-1], self.orth_terms):
             list_exprs.append(expr.get_pair_expr() + p_term)
         self.exprs = list_exprs
 
     def test_permutation(self):
+        """ Test whether the group of expressions is permutation.
         """
-        Test whether the group of expressions is permutation
-        """
+        # Collect output of each expression.
         all_out = []
         for expr in self.exprs:
             all_out.append(expr.get_all_out())
+        # View the in the aspect of inputs and outputs of all expressions.
+        # all_out = [expr_1, ..., expr_n]
+        # all_out_t = [output_on_input_1, ..., output_on_input_m]
         all_out_t = np.array(all_out).T
+        # Pack the outputs (bits) to scales to test permutation.
         all_out_merge = (all_out_t * ep.EXP_X).sum(axis=1)
         uniq_arr = np.unique(all_out_merge)
         return len(uniq_arr) == len(all_out_merge)
 
     def __repr__(self):
-        """Print
-        """
         list_str_grp = list(map(str, self.exprs))
         return "\t\n".join(list_str_grp)
 

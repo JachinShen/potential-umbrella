@@ -3,7 +3,7 @@ Test class expression
 """
 import unittest
 import numpy as np
-import expression as expr
+import expression as ep
 import group as grp
 
 
@@ -16,45 +16,45 @@ class TestExpression(unittest.TestCase):
         """
         Test instance and print
         """
-        e = expr.Expr("zero+one+x0+x1x2")
-        self.assertTrue(isinstance(e, expr.Expr))
+        e = ep.Expr("zero+one+x0+x1x2")
+        self.assertTrue(isinstance(e, ep.Expr))
         self.assertEqual(e.__repr__(), "one + zero + x0 + x1 x2")
 
     def test_expression(self):
         """Test"""
-        e = expr.Expr("zero")
+        e = ep.Expr("zero")
         out = e.get_all_out()
         self.assertEqual(np.bitwise_or.reduce(out), False)
         self.assertFalse(e.test_balance())
         self.assertEqual(e.get_pair_expr().__repr__(), "zero")
 
-        e = expr.Expr("one")
+        e = ep.Expr("one")
         out = e.get_all_out()
         self.assertEqual(np.bitwise_or.reduce(out), True)
         self.assertFalse(e.test_balance())
         self.assertEqual(e.get_pair_expr().__repr__(), "one")
 
-        e = expr.Expr("x0")
+        e = ep.Expr("x0")
         out = e.get_all_out()
         self.assertTrue(
             (out == np.array([0]*128 + [1]*128, dtype=np.bool)).all())
         self.assertTrue(e.test_balance())
         self.assertEqual(e.get_pair_expr().__repr__(), "x7")
 
-        e = expr.Expr("x7")
+        e = ep.Expr("x7")
         out = e.get_all_out()
         self.assertTrue((out == np.array([0, 1]*128, dtype=np.bool)).all())
         self.assertTrue(e.test_balance())
         self.assertEqual(e.get_pair_expr().__repr__(), "x0")
 
-        e = expr.Expr("x1x2")
+        e = ep.Expr("x1x2")
         out = e.get_all_out()
         self.assertTrue((out == np.array(
             [0]*(2**5)*3 + [1]*(2**5) + [0]*(2**5)*3 + [1]*(2**5), dtype=np.bool)).all())
         self.assertFalse(e.test_balance())
         self.assertEqual(e.get_pair_expr().__repr__(), "x5 x6")
 
-        e = expr.Expr("x1+x2")
+        e = ep.Expr("x1+x2")
         out = e.get_all_out()
         self.assertTrue((out == np.array(
             [0]*(2**5) + [1]*(2**5)*2 + [0]*(2**5)*2 +
@@ -74,11 +74,11 @@ class TestExpression(unittest.TestCase):
         ]
         res_expr = []
         for e in list_exprs:
-            e = expr.Expr(e)
+            e = ep.Expr(e)
             res_expr.append(e.get_all_out())
         res_expr = np.array(res_expr)
 
-        expr_batch = expr.RegBatch(list_exprs)
+        expr_batch = ep.RegBatch(list_exprs)
         res_expr_batch = expr_batch.run().numpy()
         self.assertTrue((res_expr == res_expr_batch).all())
 
@@ -92,11 +92,11 @@ class TestExpression(unittest.TestCase):
         ]
         res_expr = []
         for e in list_exprs:
-            e = expr.Expr(e)
+            e = ep.Expr(e)
             res_expr.append(e.get_all_out())
         res_expr = np.array(res_expr)
 
-        expr_batch = expr.ExprBatch(list_exprs)
+        expr_batch = ep.ExprBatch(list_exprs)
         res_expr_batch = expr_batch.run().numpy()
         print(res_expr == res_expr_batch)
         self.assertTrue((res_expr == res_expr_batch).all())
