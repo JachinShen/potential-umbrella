@@ -19,14 +19,15 @@ def main():
     ]
     # Candidates.
     cand_terms = [
-        "x4x5", "x4x6", "x4x7", "x5x6", "x5x7", "x6x7",
+        #"x4x5", "x4x6", "x4x7", "x5x6", "x5x7", "x6x7",
+        "x4x5x6", "x5x6x7", "x6x7x4", "x7x4x5",
     ]
     cached_exprs_grp = []
     cnt = 0
     # Find balance candidates for every expression.
     for b_term in base_terms:
         cand_exprs = []
-        for terms in combinations(cand_terms, 3):
+        for terms in combinations(cand_terms, 1):
             str_expr = "+".join(list(terms) + [b_term])
             expr = ep.Expr(str_expr)
             if expr.test_balance():

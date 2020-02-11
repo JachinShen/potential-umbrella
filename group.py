@@ -63,7 +63,7 @@ class GroupBatch():
         batch_size: Number of groups.
         list_grps: List of groups.
     """
-    orth_terms = ["x4", "x5", "x6", "x7"]
+    orth_terms = ["x{}".format(i) for i in range(ep.N_X//2, ep.N_X)]
     n_expr = len(orth_terms)
     standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 

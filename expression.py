@@ -1,6 +1,6 @@
 """ expression.py
 
-Classes to represent a single expression, 
+Classes to represent a single expression,
 batch of expressions with same number of terms and
 batch of expressions with arbitrary number of terms.
 """
@@ -143,8 +143,8 @@ class Expr(object):
         Returns:
             An integer 1-d numpy array of size [n_terms].
         """
-        x = self.mat[:, 1:-1]
-        return utils.pack_arr_bits(x)
+        mat_x = self.mat[:, 1:-1]
+        return utils.pack_arr_bits(mat_x)
 
     def get_pair_expr(self):
         """ Get pair expression
@@ -155,8 +155,8 @@ class Expr(object):
             A paired Expr instance.
         """
         mat = np.copy(self.mat)
-        x = mat[:, 1:-1]
-        mat[:, 1:-1] = x[:, ::-1]
+        mat_x = mat[:, 1:-1]
+        mat[:, 1:-1] = mat_x[:, ::-1]
         return Expr("", mat)
 
     def get_all_out(self):
