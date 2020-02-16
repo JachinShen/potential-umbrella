@@ -191,10 +191,10 @@ class Expr(object):
             else:  # other characters exist, ignore "one"
                 # char_id[-1]: "one"
                 list_str_chars = [ALPHABET[i] for i in char_id[:-1]]
-                str_term = " ".join(list_str_chars)
+                str_term = "".join(list_str_chars)
                 list_str_terms.append(str_term)
 
-        return " + ".join(list_str_terms)
+        return "+".join(list_str_terms)
 
 
 class RegBatch(object):
@@ -292,6 +292,7 @@ class ExprBatch():
 
     def __init__(self, list_exprs):
         if len(list_exprs) == 0:
+            print("No expressions input!")
             return
         if isinstance(list_exprs[0], str):
             list_exprs = list(map(Expr, list_exprs))

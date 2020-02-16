@@ -1,56 +1,164 @@
 """filter_selected.py
 """
-from itertools import permutations
+import time
+from itertools import permutations, product, chain
+import torch
 import numpy as np
 import expression as ep
-import group as grp
+
+
+class AppendFilter(object):
+    """Filter to select appended terms
+    """
+    __append_terms = [
+        [
+            "x0x1x2x3x4x5x6",
+            "x0x1x2x3x4x5x7",
+            "x0x1x2x3x4x6x7",
+            "x0x1x2x3x5x6x7",
+            "x0x1x2x4x5x6x7",
+            "x0x1x3x4x5x6x7",
+            "x0x2x3x4x5x6x7",
+            "x1x2x3x4x5x6x7",
+        ], [
+            "x1x2x3x4x5x6",
+            "x0x2x3x4x5x7",
+            "x0x1x3x4x6x7",
+            "x0x1x2x5x6x7",
+        ],
+    ]
+    __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
+
+    def __init__(self, list_grps):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        v_grps = []
+        for group in list_grps:
+            batch_expr = ep.ExprBatch(group)
+            v_grps.append(batch_expr.run())
+        v_grps = torch.stack(v_grps, dim=0)
+
+        self.__grps = list_grps
+        self.__v_grps = v_grps.long().to(device)
+        self.__n_grp = len(list_grps)
+
+        cache_shape = [len(t) for t in self.__append_terms]
+        list_exprs = []
+        list_paired_exprs = []
+        for terms in product(*self.__append_terms):
+            expr = ep.Expr("+".join(terms))
+            expr_pair = expr.get_pair_expr()
+            list_exprs.append(str(expr))
+            list_paired_exprs.append(str(expr_pair))
+        cache = ep.ExprBatch(list_exprs).run()
+        paired_cache = ep.ExprBatch(list_paired_exprs).run()
+        self.__cache_exprs = list_exprs
+        self.__cache_paired_exprs = list_paired_exprs
+        self.__cache = cache.to(device)
+        self.__paired_cache = paired_cache.to(device)
+        self.__cache_shape = cache_shape
+        self.__standard = self.__standard.to(device)
+        self.__res_print = []
+
+    def run(self):
+        """Run
+        """
+        for grp_id in range(self.__n_grp):
+            print("[{}] Test group {}".format(time.time(), grp_id))
+            self.test_grp(grp_id)
+        return self.__res_print
+
+    def test_grp(self, grp_id):
+        """Test group
+        """
+        group = self.__grps[grp_id]
+        out_grp = self.__v_grps[grp_id]
+        batch_size = 10000
+        list_ids = []
+        cnt = 0
+        for ids in product(*[permutations(range(t), ep.N_X//2) for t in self.__cache_shape]):
+            cnt += 1
+            ids = list(ids)
+            list_ids.append(ids)
+            if cnt % batch_size == 0:
+                if self.test_apd(out_grp, list_ids, group):
+                    pass
+                    #break
+                list_ids = []
+        if cnt % batch_size != 0:
+            self.test_apd(out_grp, list_ids, group)
+
+    def test_apd(self, out_grp, list_ids, group):
+        """Test append terms
+        """
+        arr_ids = self.__preprocess_ids(list_ids)
+        out_apd = self.get_batch_apd_v(arr_ids)
+        out = out_grp ^ out_apd
+        is_perm = self.test_permutation(out)
+        if is_perm.any():
+            id_nonzero = is_perm.nonzero().cpu().flatten()
+            id_apd = arr_ids[id_nonzero].numpy()
+            for id_grp_apd in id_apd:
+                str_grp = []
+                for i, id_cache_term in enumerate(id_grp_apd):
+                    str_grp.append(
+                        group[i] + self.__cache_exprs[id_cache_term])
+                for i, id_cache_term in enumerate(id_grp_apd[::-1]):
+                    str_grp.append(
+                        group[ep.N_X//2+i] + self.__cache_paired_exprs[id_cache_term])
+                self.__res_print.append(";".join(str_grp))
+            return True
+        return False
+
+    def __preprocess_ids(self, list_ids):
+        arr_ids = torch.Tensor(list_ids).long()
+        for i, len_t in enumerate(self.__cache_shape[1:]):
+            arr_ids[:, i, :] *= len_t
+        arr_ids = arr_ids.sum(dim=1)
+        return arr_ids
+
+    def get_batch_apd_v(self, arr_ids):
+        """Get batch append value
+        """
+        batch_size = len(arr_ids)
+        # For i-th group, j-th expression, k-th output value:
+        # ids[i, j]: candidate id of the j-th expression in the i-th group.
+        # res[i, j, k] = __v_cand[j, ids[i, j], k]
+        res = ([self.__cache[arr_ids[:, i], :] for i in range(ep.N_X//2)] +
+               [self.__paired_cache[arr_ids[:, i]] for i in range(ep.N_X//2)[::-1]])
+        res = torch.stack(res, dim=1)
+        return res
+
+    def test_permutation(self, res):
+        """Test permutation according to the outputs.
+
+        Args:
+            res: A torch tensor storing the output values of many groups.
+                Of size [batch, expressions, input_values]
+
+        Returns:
+            A boolean torch tensor indicating whether each group is permutation.
+            Of size [batch].
+        """
+        res = res.long()
+        # Convert bits to scales
+        res = sum([res[:, i, :] << i for i in range(ep.N_X)])
+        # A group is permutation iff sorted outputs exactly equal the standard outputs.
+        res = res.sort(dim=1)[0]
+        is_perm = (res == self.__standard).all(dim=1)
+        return is_perm
+
 
 def main():
     """Main
     """
-    list_n_1_terms = [
-        "x0x1x2x3x4x5x6",
-        "x0x1x2x3x4x5x7",
-        "x0x1x2x3x4x6x7",
-        "x0x1x2x3x5x6x7",
-        "x0x1x2x4x5x6x7",
-        "x0x1x3x4x5x6x7",
-        "x0x2x3x4x5x6x7",
-        "x1x2x3x4x5x6x7",
-    ]
-
-    list_str_exprs = []
-    with open("permutations.txt", "r") as txt_file:
-        for i in range(4):
-            list_str_exprs.append(txt_file.readline())
-
-    list_exprs = [ep.Expr(e) for e in list_str_exprs]
-    print(list_exprs)
-    
-    ctr = 0
-    list_grps = []
-    for terms in permutations(list_n_1_terms, 4):
-        terms = list(terms)
-        list_test = []
-        for i in range(4):
-            list_test.append(list_exprs[i] + terms[i])
-        list_grps.append(list_test)
-        ctr += 1
-        if ctr % 1000 == 0:
-            print("Tested {}".format(ctr))
-            print(list_grps[100])
-            grp_batch = grp.GroupBatch(list_grps)
-            if grp_batch.test_permutation().any():
-                print("Find!")
-                break
-            list_grps = []
-
-    if ctr % 1000 != 0:
-        print("Tested {}".format(ctr))
-        grp_batch = grp.GroupBatch(list_grps)
-        if grp_batch.test_permutation().any():
-            print("Find!")
-
+    with open("half_permutations.txt", "r") as txt_file:
+        str_perm = txt_file.read()
+    list_str_grps = str_perm.split()
+    list_grps = [len_t.split(";") for len_t in list_str_grps]
+    append_filter = AppendFilter(list_grps)
+    res = append_filter.run()
+    with open("permutations.txt", "w") as txt_file:
+        txt_file.write("\n".join(res))
 
 
 if __name__ == "__main__":

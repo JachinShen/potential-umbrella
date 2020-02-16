@@ -18,30 +18,36 @@ def main():
         "x7+x7x4x5+x4x5x6",
     ]
     # Candidates.
-    cand_terms_1 = [
-        "x0x1x2x3x4x5x6",
-        "x0x1x2x3x4x5x7",
-        "x0x1x2x3x4x6x7",
-        "x0x1x2x3x5x6x7",
-        "x0x1x2x4x5x6x7",
-        "x0x1x3x4x5x6x7",
-        "x0x2x3x4x5x6x7",
-        "x1x2x3x4x5x6x7",
-    ]
-    cand_terms_2 = [
-        "x1x2x3x4x5x6",
-        "x0x2x3x4x5x7",
-        "x0x1x3x4x6x7",
-        "x0x1x2x5x6x7",
-        #"x4x5", "x4x6", "x4x7", "x5x6", "x5x7", "x6x7",
-        #"x4x5x6", "x5x6x7", "x6x7x4", "x7x4x5",
+    cand_terms = [
+        ([
+            "x0x1x2x3x4x5x6",
+            "x0x1x2x3x4x5x7",
+            "x0x1x2x3x4x6x7",
+            "x0x1x2x3x5x6x7",
+            "x0x1x2x4x5x6x7",
+            "x0x1x3x4x5x6x7",
+            "x0x2x3x4x5x6x7",
+            "x1x2x3x4x5x6x7",
+        ], 0),
+        ([
+            "x1x2x3x4x5x6",
+            "x0x2x3x4x5x7",
+            "x0x1x3x4x6x7",
+            "x0x1x2x5x6x7",
+        ], 0),
+        ([
+            "x4x5", "x4x6", "x4x7", "x5x6", "x5x7", "x6x7",
+        ], 4),
+        ([
+            "x4x5x6", "x5x6x7", "x6x7x4", "x7x4x5",
+        ], 0),
     ]
     cached_exprs_grp = []
     cnt = 0
     # Find balance candidates for every expression.
     for b_term in base_terms:
         cand_exprs = []
-        for terms in product(combinations(cand_terms_1, 1), combinations(cand_terms_2, 1)):
+        for terms in product(*[combinations(t, n) for t, n in cand_terms]):
             terms = list(map(list, terms))
             terms = list(chain.from_iterable(terms))
             str_expr = "+".join(list(terms) + [b_term])
