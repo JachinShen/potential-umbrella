@@ -1,9 +1,11 @@
 """filter_selected.py
 """
+import itertools
 import time
-from itertools import permutations, product, chain
-import torch
+
 import numpy as np
+import torch
+
 import expression as ep
 
 
@@ -58,7 +60,7 @@ class AppendFilter(object):
         cache_shape = [len(t) for t in self.__append_terms]
         list_exprs = []
         list_paired_exprs = []
-        for terms in product(*self.__append_terms):
+        for terms in itertools.product(*self.__append_terms):
             expr = ep.Expr("+".join(terms))
             expr_pair = expr.get_pair_expr()
             list_exprs.append(str(expr))
@@ -91,14 +93,16 @@ class AppendFilter(object):
         cnt = 0
         # For each permutation (not combination) of __append_terms.
         # product(P(8, 4), P(4, 4))
-        for ids in product(*[permutations(range(t), ep.N_X//2) for t in self.__cache_shape]):
+        list_cand_ids = [itertools.permutations(
+            range(t), ep.N_X//2) for t in self.__cache_shape]
+        for ids in itertools.product(*list_cand_ids):
             cnt += 1
             ids = list(ids)
             list_ids.append(ids)
             if cnt % batch_size == 0:
                 if self.test_apd(out_grp, list_ids, group):
                     pass
-                    #break
+                    # break
                 list_ids = []
         if cnt % batch_size != 0:
             self.test_apd(out_grp, list_ids, group)
@@ -151,12 +155,12 @@ class AppendFilter(object):
         """
         for id_grp_apd in found_apd_ids:
             str_grp = []
-            for i, id_cache_term in enumerate(id_grp_apd):
-                str_grp.append(
-                    group[i] + self.__cache_exprs[id_cache_term])
-            for i, id_cache_term in enumerate(id_grp_apd[::-1]):
-                str_grp.append(
-                    group[ep.N_X//2+i] + self.__cache_paired_exprs[id_cache_term])
+            for i, id_t in enumerate(id_grp_apd):
+                str_expr = "{}+{}".format(group[i], self.__cache_exprs[id_t])
+                str_grp.append(str_expr)
+            for i, id_t in enumerate(id_grp_apd[::-1]):
+                str_expr = "{}+{}".format(group[ep.N_X//2+i], self.__cache_paired_exprs[id_t])
+                str_grp.append(str_expr)
             self.__res_print.append(";".join(str_grp))
 
     def test_permutation(self, res):
