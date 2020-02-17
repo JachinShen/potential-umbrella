@@ -14,10 +14,8 @@ class Group(object):
     """Class to represent a group of equations.
 
     Attributes:
-        orth_terms: Terms to make the permutation orthogonal.
         exprs: List of Expr instances.
     """
-    orth_terms = ["x{}".format(i) for i in range(ep.N_X//2, ep.N_X)]
 
     def __init__(self, list_exprs: list):
         if len(list_exprs) == 0:
@@ -25,9 +23,6 @@ class Group(object):
             return
         if isinstance(list_exprs[0], str):
             list_exprs = list(map(ep.Expr, list_exprs))
-        # Append the second half.
-        for expr, p_term in zip(list_exprs[::-1], self.orth_terms):
-            list_exprs.append(expr.get_pair_expr() + p_term)
         self.exprs = list_exprs
 
     def test_permutation(self):
@@ -57,14 +52,11 @@ class GroupBatch():
     Computer many groups effectively.
 
     Attributes:
-        orth_terms: Terms to make the permutation orthogonal.
         n_expr: Half of the number of expressions in one group.
         standard: A torch tensor containing the outputs of permutation, used to test permutation.
         batch_size: Number of groups.
         list_grps: List of groups.
     """
-    orth_terms = ["x{}".format(i) for i in range(ep.N_X//2, ep.N_X)]
-    n_expr = len(orth_terms)
     standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
@@ -79,8 +71,6 @@ class GroupBatch():
     def __preprocess_group(self, list_exprs):
         if isinstance(list_exprs[0], str):
             list_exprs = list(map(ep.Expr, list_exprs))
-        for expr, p_term in zip(list_exprs[::-1], self.orth_terms):
-            list_exprs.append(expr.get_pair_expr() + p_term)
         return list_exprs
 
     def run(self):
@@ -89,7 +79,7 @@ class GroupBatch():
         # View groups as many expressions.
         list_exprs = list(itertools.chain(*self.list_grps))
         res = ep.ExprBatch(list_exprs).run()
-        res = res.reshape(self.batch_size, 2*self.n_expr, -1).long()
+        res = res.reshape(self.batch_size, ep.N_X, -1).long()
         return res
 
     def test_permutation(self):

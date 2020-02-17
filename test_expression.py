@@ -110,7 +110,11 @@ class TestExpression(unittest.TestCase):
             "x4+x5x6+x5x7",
             "x5+x4x6+x4x7",
             "x6+x4x7+x5x7",
-            "x7+x4x6+x5x6"
+            "x7+x4x6+x5x6",
+            "x0+x4+x1x2+x1x3",
+            "x1+x5+x0x2+x0x3",
+            "x2+x6+x0x3+x1x",
+            "x3+x7+x0x2+x1x2",
         ]
         group = grp.Group(list_exprs)
         self.assertFalse(group.test_permutation())
@@ -119,7 +123,11 @@ class TestExpression(unittest.TestCase):
             "x4+x4x5x6+x5x6x7",
             "x5+x5x6x7+x6x7x4",
             "x6+x6x7x4+x7x4x5",
-            "x7+x7x4x5+x4x5x6"
+            "x7+x7x4x5+x4x5x6",
+            "x0+x4+x0x2x3+x1x2x3",
+            "x1+x5+x0x1x3+x0x2x3",
+            "x2+x6+x0x1x2+x0x1x3",
+            "x3+x7+x0x1x2+x1x2x3",
         ]
         group = grp.Group(list_exprs)
         self.assertTrue(group.test_permutation())
@@ -132,11 +140,19 @@ class TestExpression(unittest.TestCase):
                 "x5+x4x6+x4x7",
                 "x6+x4x7+x5x7",
                 "x7+x4x6+x5x6",
+                "x0+x4+x1x2+x1x3",
+                "x1+x5+x0x2+x0x3",
+                "x2+x6+x0x3+x1x",
+                "x3+x7+x0x2+x1x2",
             ], [
                 "x4+x4x5x6+x5x6x7",
                 "x5+x5x6x7+x6x7x4",
                 "x6+x6x7x4+x7x4x5",
-                "x7+x7x4x5+x4x5x6"
+                "x7+x7x4x5+x4x5x6",
+                "x0+x4+x0x2x3+x1x2x3",
+                "x1+x5+x0x1x3+x0x2x3",
+                "x2+x6+x0x1x2+x0x1x3",
+                "x3+x7+x0x1x2+x1x2x3",
             ]
         ]
         grp_batch = grp.GroupBatch(list_grps)
