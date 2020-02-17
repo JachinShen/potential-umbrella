@@ -51,7 +51,7 @@ class AppendFilter(object):
         v_grps = torch.stack(v_grps, dim=0)
 
         self.__grps = list_grps
-        self.__v_grps = v_grps.long().to(device)
+        self.__v_grps = v_grps.to(device)
         self.__n_grp = len(list_grps)
 
         # Cache product of candidates in __append_terms.
@@ -117,16 +117,8 @@ class AppendFilter(object):
         is_perm = self.test_permutation(out)
         if is_perm.any():
             id_nonzero = is_perm.nonzero().cpu().flatten()
-            id_apd = arr_ids[id_nonzero].numpy()
-            for id_grp_apd in id_apd:
-                str_grp = []
-                for i, id_cache_term in enumerate(id_grp_apd):
-                    str_grp.append(
-                        group[i] + self.__cache_exprs[id_cache_term])
-                for i, id_cache_term in enumerate(id_grp_apd[::-1]):
-                    str_grp.append(
-                        group[ep.N_X//2+i] + self.__cache_paired_exprs[id_cache_term])
-                self.__res_print.append(";".join(str_grp))
+            found_apd_ids = arr_ids[id_nonzero].cpu().numpy()
+            self.__store_found_perms(found_apd_ids, group)
             return True
         return False
 
@@ -149,6 +141,23 @@ class AppendFilter(object):
                [self.__paired_cache[arr_ids[:, i], :] for i in range(ep.N_X//2)[::-1]])
         res = torch.stack(res, dim=1)
         return res
+
+    def __store_found_perms(self, found_apd_ids, group):
+        """Store found permutations
+
+        Args:
+            found_apd_ids: A indexing numpy array of found append terms of size [found_size, N_X//2].
+            group: A list of string containing the original group.
+        """
+        for id_grp_apd in found_apd_ids:
+            str_grp = []
+            for i, id_cache_term in enumerate(id_grp_apd):
+                str_grp.append(
+                    group[i] + self.__cache_exprs[id_cache_term])
+            for i, id_cache_term in enumerate(id_grp_apd[::-1]):
+                str_grp.append(
+                    group[ep.N_X//2+i] + self.__cache_paired_exprs[id_cache_term])
+            self.__res_print.append(";".join(str_grp))
 
     def test_permutation(self, res):
         """Test permutation according to the outputs.
