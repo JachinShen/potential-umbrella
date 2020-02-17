@@ -5,6 +5,7 @@ batch of expressions with same number of terms and
 batch of expressions with arbitrary number of terms.
 """
 import os
+import itertools
 import numpy as np
 import torch
 import utils
@@ -135,7 +136,16 @@ class Expr(object):
         if isinstance(other, str):
             other = Expr(other)
         new_mat = np.concatenate([self.mat, other.mat], axis=0)
-        return Expr("", new_mat)
+        return Expr(mat=new_mat)
+
+    def __mul__(self, other):
+        if isinstance(other, str):
+            other = Expr(other)
+        new_mat = []
+        for p, q in itertools.product(self.mat, other.mat):
+            new_mat.append(p|q)
+        new_mat = np.stack(new_mat, axis=0)
+        return Expr(mat=new_mat)
 
     def get_packed_x(self):
         """Get packed x.
@@ -270,9 +280,9 @@ class RegBatch(object):
             cache_t = np.zeros([n_terms, n_inputs], dtype=np.bool)
             for i in range(n_terms):
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
-                mat[0, 1] = False # "zero" = 0
+                mat[0, 1] = False  # "zero" = 0
                 mat[0, 1:-1] = utils.unpack_scale(i, N_X)
-                mat[0, -1] = True # "one" = 1
+                mat[0, -1] = True  # "one" = 1
                 expr = Expr("", mat)
                 cache_t[i, :] = expr.get_all_out()
             np.save(cache_file, cache_t)

@@ -15,7 +15,7 @@ class TestExpression(unittest.TestCase):
         """
         expr = ep.Expr("zero+one+x0+x1x2")
         self.assertTrue(isinstance(expr, ep.Expr))
-        self.assertEqual(expr.__repr__(), "one + zero + x0 + x1 x2")
+        self.assertEqual(expr.__repr__(), "one+zero+x0+x1x2")
 
     def test_expression(self):
         """Test single expression.
@@ -50,7 +50,7 @@ class TestExpression(unittest.TestCase):
         self.assertTrue((out == np.array(
             [0]*(2**5)*3 + [1]*(2**5) + [0]*(2**5)*3 + [1]*(2**5), dtype=np.bool)).all())
         self.assertFalse(expr.test_balance())
-        self.assertEqual(expr.get_pair_expr().__repr__(), "x5 x6")
+        self.assertEqual(expr.get_pair_expr().__repr__(), "x5x6")
 
         expr = ep.Expr("x1+x2")
         out = expr.get_all_out()
@@ -58,7 +58,13 @@ class TestExpression(unittest.TestCase):
             [0]*(2**5) + [1]*(2**5)*2 + [0]*(2**5)*2 +
             [1]*(2**5)*2 + [0]*(2**5), dtype=np.bool)).all())
         self.assertTrue(expr.test_balance())
-        self.assertEqual(expr.get_pair_expr().__repr__(), "x5 + x6")
+        self.assertEqual(expr.get_pair_expr().__repr__(), "x5+x6")
+
+        expr1 = ep.Expr("x0+x1x2")
+        expr2 = ep.Expr("x1+x2x3")
+        expr_prod = expr1 * expr2
+        print(expr_prod)
+        self.assertEqual(str(expr_prod), "x0x1+x1x2+x0x2x3+x1x2x3")
 
     def test_expr_batch(self):
         """Test batch expressions.
