@@ -140,6 +140,7 @@ def main():
                  for expr in str_cands_expr]
     perm_filter = PermFilter(expr_cand)
     res = perm_filter.run()
+    print("Find {} half permutations!".format(len(res)))
     with open("half_permutations.txt", "w") as txt_file:
         txt_file.write("\n".join(res))
 

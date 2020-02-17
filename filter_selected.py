@@ -8,7 +8,20 @@ import expression as ep
 
 
 class AppendFilter(object):
-    """Filter to select appended terms
+    """Filter to select appended terms.
+
+    Attributes:
+        __append_terms: A list of strings to be appended on each expression.
+        __standard: A torch tensor containing the outputs of permutation, used to test permutation.
+        __grps: A list of strings containing candidate groups.
+        __v_grps: A torch tensor storing output values of each group of size [batch, N_X, 2^N_X].
+        __n_grp: Number of candidate groups.
+        __cache_exprs: A list of strings containing combinations of __append_terms.
+        __cache_paired_exprs: A list of strings containing paired combinations.
+        __cache: A torch tensor storing output values of __cache_exprs.
+        __paired_cache: A torch tensor storing output values of __cache_paired_exprs.
+        __cache_shape: The shape of __append_terms.
+        __res_print: A list storing found permutations.
     """
     __append_terms = [
         [
@@ -41,6 +54,7 @@ class AppendFilter(object):
         self.__v_grps = v_grps.long().to(device)
         self.__n_grp = len(list_grps)
 
+        # Cache product of candidates in __append_terms.
         cache_shape = [len(t) for t in self.__append_terms]
         list_exprs = []
         list_paired_exprs = []
@@ -75,6 +89,8 @@ class AppendFilter(object):
         batch_size = 10000
         list_ids = []
         cnt = 0
+        # For each permutation (not combination) of __append_terms.
+        # product(P(8, 4), P(4, 4))
         for ids in product(*[permutations(range(t), ep.N_X//2) for t in self.__cache_shape]):
             cnt += 1
             ids = list(ids)
@@ -89,6 +105,11 @@ class AppendFilter(object):
 
     def test_apd(self, out_grp, list_ids, group):
         """Test append terms
+
+        Args:
+            out_grp: A torch tensor storing output values of current group.
+            list_ids: A list containing indexs of append terms to test.
+            group: The string of current group.
         """
         arr_ids = self.__preprocess_ids(list_ids)
         out_apd = self.get_batch_apd_v(arr_ids)
@@ -110,6 +131,7 @@ class AppendFilter(object):
         return False
 
     def __preprocess_ids(self, list_ids):
+        # Extend the n-d index to 1-d index.
         arr_ids = torch.Tensor(list_ids).long()
         for i, len_t in enumerate(self.__cache_shape[1:]):
             arr_ids[:, i, :] *= len_t
@@ -120,11 +142,11 @@ class AppendFilter(object):
         """Get batch append value
         """
         batch_size = len(arr_ids)
-        # For i-th group, j-th expression, k-th output value:
-        # ids[i, j]: candidate id of the j-th expression in the i-th group.
-        # res[i, j, k] = __v_cand[j, ids[i, j], k]
+        # For i-th append permutation, j-th expression, k-th output value:
+        # ids[i, j]: candidate id of the j-th expression in the i-th append permutation.
+        # res[i, j, k] = __cache[ids[i, j], k]
         res = ([self.__cache[arr_ids[:, i], :] for i in range(ep.N_X//2)] +
-               [self.__paired_cache[arr_ids[:, i]] for i in range(ep.N_X//2)[::-1]])
+               [self.__paired_cache[arr_ids[:, i], :] for i in range(ep.N_X//2)[::-1]])
         res = torch.stack(res, dim=1)
         return res
 
@@ -157,6 +179,7 @@ def main():
     list_grps = [len_t.split(";") for len_t in list_str_grps]
     append_filter = AppendFilter(list_grps)
     res = append_filter.run()
+    print("Find {} permutations!".format(len(res)))
     with open("permutations.txt", "w") as txt_file:
         txt_file.write("\n".join(res))
 
