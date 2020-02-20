@@ -113,7 +113,7 @@ class TestExpression(unittest.TestCase):
             "x7+x4x6+x5x6",
             "x0+x4+x1x2+x1x3",
             "x1+x5+x0x2+x0x3",
-            "x2+x6+x0x3+x1x",
+            "x2+x6+x0x3+x1x3",
             "x3+x7+x0x2+x1x2",
         ]
         group = grp.Group(list_exprs)
@@ -142,7 +142,7 @@ class TestExpression(unittest.TestCase):
                 "x7+x4x6+x5x6",
                 "x0+x4+x1x2+x1x3",
                 "x1+x5+x0x2+x0x3",
-                "x2+x6+x0x3+x1x",
+                "x2+x6+x0x3+x1x3",
                 "x3+x7+x0x2+x1x2",
             ], [
                 "x4+x4x5x6+x5x6x7",
