@@ -48,9 +48,21 @@ class Expr(object):
             # True if the term has this character
             mat = np.zeros([n_terms, LEN_ALPHA], dtype=np.bool)
             for i, term in enumerate(terms):
+                if ALPHABET[0] in term:
+                    mat[i, 0] = True
+                    continue
+                elif ALPHABET[-1] in term:
+                    mat[i, -1] = True
+                    continue
+                else:
+                    chars = term.split("x")[1:]
+                    chars = np.array(list(map(int, chars)))
+                    mat[i, chars+1] = True
+                """
                 for j, char in enumerate(ALPHABET):
                     if char in term:
                         mat[i, j] = True
+                """
             # Every term implictly has char "one".
             mat[:, -1] = True
         # Else use the passed mat.
