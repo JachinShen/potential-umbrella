@@ -1,8 +1,11 @@
 """interaction.py
 """
 
+import numpy as np
+
 import expression as ep
 import group as grp
+import utils
 
 def main():
     """Main
@@ -10,6 +13,7 @@ def main():
     print(
         "1: test balance of expression. \n"
         "2: test permutation of group. \n"
+        "3: generate n-degree terms. \n"
     )
 
     cmd = input()
@@ -17,6 +21,8 @@ def main():
         test_balance()
     elif cmd == "2":
         test_permutation()
+    elif cmd == "3":
+        generate_terms()
     else:
         print("Unknown command! Exit!")
 
@@ -25,7 +31,7 @@ def test_permutation():
     """
     while True:
         list_str_exprs = []
-        for i in range(ep.N_X//2):
+        for i in range(ep.N_X):
             print("Please input expression {}:".format(i+1))
             str_expr = input()
             if str_expr == "q":
@@ -53,6 +59,21 @@ def test_balance():
             print("Balance!")
         else:
             print("Imbalance!")
+
+def generate_terms():
+    """Generate n-degree terms
+    """
+    all_terms = np.zeros([2**(ep.N_X//2), ep.LEN_ALPHA], dtype=np.bool)
+    all_terms[:, 0] = False
+    all_terms[:, ep.N_X//2+1:-1] = utils.get_all_unpacked_bits(ep.N_X//2)
+    all_terms[:, -1] = True
+    deg_terms = all_terms.sum(axis=1) - 1
+    while True:
+        print("Please input the degree:")
+        deg = int(input())
+        mask = (deg_terms == deg)
+        expr = ep.Expr(mat=all_terms[mask])
+        print(expr)
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@
 Classes to represent a group of equations.
 """
 
-import time
+# import time
 import itertools
 import torch
 import numpy as np
@@ -53,7 +53,8 @@ class GroupBatch():
 
     Attributes:
         n_expr: Half of the number of expressions in one group.
-        standard: A torch tensor containing the outputs of permutation, used to test permutation.
+        standard: A torch tensor containing the outputs of permutation,
+            used to test permutation.
         batch_size: Number of groups.
         list_grps: List of groups.
     """
@@ -88,7 +89,8 @@ class GroupBatch():
         res = self.run()
         # Convert outputs (bits) to scales.
         res = sum([res[:, i, :] << i for i in range(ep.N_X)])
-        # The group is permutation iff the outputs cover the whole domain [0, 2^N_X].
+        # The group is permutation iff
+        #   the outputs cover the whole domain [0, 2^N_X].
         # Sort each group for convenience to compare with **standard**.
         # **standard** is the outputs [0, 2^N_X]
         res = res.sort(dim=1)[0]
@@ -106,11 +108,19 @@ if __name__ == "__main__":
                 "x5+x4x6+x4x7",
                 "x6+x4x7+x5x7",
                 "x7+x4x6+x5x6",
+                "x0+x4+x1x2+x1x3",
+                "x1+x5+x0x2+x0x3",
+                "x2+x6+x0x3+x1x",
+                "x3+x7+x0x2+x1x2",
             ], [
                 "x4+x4x5x6+x5x6x7",
                 "x5+x5x6x7+x6x7x4",
                 "x6+x6x7x4+x7x4x5",
-                "x7+x7x4x5+x4x5x6"
+                "x7+x7x4x5+x4x5x6",
+                "x0+x4+x0x2x3+x1x2x3",
+                "x1+x5+x0x1x3+x0x2x3",
+                "x2+x6+x0x1x2+x0x1x3",
+                "x3+x7+x0x1x2+x1x2x3",
             ]
         ]
         grp_batch = GroupBatch(list_grps)

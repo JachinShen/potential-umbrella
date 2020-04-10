@@ -14,8 +14,9 @@ N_X = 8
 ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
 LEN_ALPHA = len(ALPHABET)
 N_INPUT_X = 2**N_X  # number of possible values of X
+# used to pack whole alphabet
 EXP_ALPHA = np.logspace(
-    0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)  # used to pack whole alphabet
+    0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
 EXP_X = np.logspace(
     0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
 
@@ -95,8 +96,10 @@ class Expr(object):
         """ Compute the value of expression on the input x.
 
         Args:
-            input_x: A 1-d numpy array containing the input value of x of size [N_INPUT_X].
-                Or a 2-d numpy array containing batches of inputs of size [batch, N_INPUT_X].
+            input_x: A 1d numpy array containing input value x
+                    of size [N_INPUT_X].
+                Or a 2-d numpy array containing batches of inputs
+                    of size [batch, N_INPUT_X].
         """
         n_axis = len(input_x.shape)
         # Make the 1-d array to 2-d array
@@ -155,7 +158,7 @@ class Expr(object):
             other = Expr(other)
         new_mat = []
         for p, q in itertools.product(self.mat, other.mat):
-            new_mat.append(p|q)
+            new_mat.append(p | q)
         new_mat = np.stack(new_mat, axis=0)
         return Expr(mat=new_mat)
 
@@ -284,10 +287,11 @@ class RegBatch(object):
     def cache_terms():
         """Cache the outputs of the terms on all possible inputs.
         """
-        cache_file = "cache_terms-{}.npy".format(LEN_ALPHA)
+        cache_file = "cache_terms-{}.npy".format(N_X)
         if os.path.exists(cache_file):
             return np.load(cache_file)
         else:
+            print("Cache...Please wait!")
             n_inputs = n_terms = N_INPUT_X
             cache_t = np.zeros([n_terms, n_inputs], dtype=np.bool)
             for i in range(n_terms):

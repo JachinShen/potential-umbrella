@@ -48,7 +48,8 @@ class TestExpression(unittest.TestCase):
         expr = ep.Expr("x1x2")
         out = expr.get_all_out()
         self.assertTrue((out == np.array(
-            [0]*(2**5)*3 + [1]*(2**5) + [0]*(2**5)*3 + [1]*(2**5), dtype=np.bool)).all())
+            [0]*(2**5)*3 + [1]*(2**5) + [0]*(2**5)*3 + [1]*(2**5),
+            dtype=np.bool)).all())
         self.assertFalse(expr.test_balance())
         self.assertEqual(expr.get_pair_expr().__repr__(), "x5x6")
 
@@ -82,7 +83,7 @@ class TestExpression(unittest.TestCase):
         res_expr = np.array(res_expr)
 
         expr_batch = ep.RegBatch(list_exprs)
-        res_expr_batch = expr_batch.run().numpy()
+        res_expr_batch = expr_batch.run().cpu().numpy()
         self.assertTrue((res_expr == res_expr_batch).all())
 
         list_exprs = [
@@ -100,7 +101,7 @@ class TestExpression(unittest.TestCase):
         res_expr = np.array(res_expr)
 
         expr_batch = ep.ExprBatch(list_exprs)
-        res_expr_batch = expr_batch.run().numpy()
+        res_expr_batch = expr_batch.run().cpu().numpy()
         print(res_expr == res_expr_batch)
         self.assertTrue((res_expr == res_expr_batch).all())
 

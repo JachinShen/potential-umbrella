@@ -3,7 +3,6 @@
 import itertools
 import time
 
-import numpy as np
 import torch
 
 import expression as ep
@@ -14,14 +13,16 @@ class AppendFilter(object):
 
     Attributes:
         __append_terms: A list of strings to be appended on each expression.
-        __standard: A torch tensor containing the outputs of permutation, used to test permutation.
+        __standard: A torch tensor containing the outputs of permutation,
+            used to test permutation.
         __grps: A list of strings containing candidate groups.
-        __v_grps: A torch tensor storing output values of each group of size [batch, N_X, 2^N_X].
+        __v_grps: A torch tensor storing output values of each group
+            of size [batch, N_X, 2^N_X].
         __n_grp: Number of candidate groups.
-        __cache_exprs: A list of strings containing combinations of __append_terms.
+        __cache_exprs: A list of strings of combinations of __append_terms.
         __cache_paired_exprs: A list of strings containing paired combinations.
         __cache: A torch tensor storing output values of __cache_exprs.
-        __paired_cache: A torch tensor storing output values of __cache_paired_exprs.
+        __paired_cache: A torch tensor storing output of __cache_paired_exprs.
         __cache_shape: The shape of __append_terms.
         __res_print: A list storing found permutations.
     """
@@ -35,11 +36,48 @@ class AppendFilter(object):
             "x0x1x3x4x5x6x7",
             "x0x2x3x4x5x6x7",
             "x1x2x3x4x5x6x7",
+
+            # "x0x1x2x3x4x5x6x7x8",
+            # "x0x1x2x3x4x5x6x7x9",
+            # "x0x1x2x3x4x5x6x8x9",
+            # "x0x1x2x3x4x5x7x8x9",
+            # "x0x1x2x3x4x6x7x8x9",
+            # "x0x1x2x3x5x6x7x8x9",
+            # "x0x1x2x4x5x6x7x8x9",
+            # "x0x1x3x4x5x6x7x8x9",
+            # "x0x2x3x4x5x6x7x8x9",
+            # "x1x2x3x4x5x6x7x8x9",
+
+            # "x0x1x2x3x4x5x6x7x8x9x10",
+            # "x0x1x2x3x4x5x6x7x8x9x11",
+            # "x0x1x2x3x4x5x6x7x8x10x11",
+            # "x0x1x2x3x4x5x6x7x9x10x11",
+            # "x0x1x2x3x4x5x6x8x9x10x11",
+            # "x0x1x2x3x4x5x7x8x9x10x11",
+            # "x0x1x2x3x4x6x7x8x9x10x11",
+            # "x0x1x2x3x5x6x7x8x9x10x11",
+            # "x0x1x2x4x5x6x7x8x9x10x11",
+            # "x0x1x3x4x5x6x7x8x9x10x11",
+            # "x0x2x3x4x5x6x7x8x9x10x11",
+            # "x1x2x3x4x5x6x7x8x9x10x11",
         ], [
             "x1x2x3x4x5x6",
             "x0x2x3x4x5x7",
             "x0x1x3x4x6x7",
             "x0x1x2x5x6x7",
+
+            # "x1x2x3x4x5x6x7x8",
+            # "x0x2x3x4x5x6x7x9",
+            # "x0x1x3x4x5x6x8x9",
+            # "x0x1x2x4x5x7x8x9",
+            # "x0x1x2x3x6x7x8x9",
+
+            # "x1x2x3x4x5x6x7x8x9x10",
+            # "x0x2x3x4x5x6x7x8x9x11",
+            # "x0x1x3x4x5x6x7x8x10x11",
+            # "x0x1x2x4x5x6x7x9x10x11",
+            # "x0x1x2x3x5x6x8x9x10x11",
+            # "x0x1x2x3x4x7x8x9x10x11",
         ],
     ]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
@@ -88,7 +126,7 @@ class AppendFilter(object):
         """
         group = self.__grps[grp_id]
         out_grp = self.__v_grps[grp_id]
-        batch_size = 10000
+        batch_size = 80000
         list_ids = []
         cnt = 0
         # For each permutation (not combination) of __append_terms.
@@ -100,9 +138,10 @@ class AppendFilter(object):
             ids = list(ids)
             list_ids.append(ids)
             if cnt % batch_size == 0:
+                # print("[{}]: Test {} samples:".format(time.time(), cnt))
                 if self.test_apd(out_grp, list_ids, group):
                     pass
-                    # break
+                    break
                 list_ids = []
         if cnt % batch_size != 0:
             self.test_apd(out_grp, list_ids, group)
@@ -121,6 +160,7 @@ class AppendFilter(object):
         is_perm = self.test_permutation(out)
         if is_perm.any():
             id_nonzero = is_perm.nonzero().cpu().flatten()
+            print("[{}]: Find {}!".format(time.time(), id_nonzero))
             found_apd_ids = arr_ids[id_nonzero].cpu().numpy()
             self.__store_found_perms(found_apd_ids, group)
             return True
@@ -137,12 +177,14 @@ class AppendFilter(object):
     def get_batch_apd_v(self, arr_ids):
         """Get batch append value
         """
-        batch_size = len(arr_ids)
+        # batch_size = len(arr_ids)
         # For i-th append permutation, j-th expression, k-th output value:
-        # ids[i, j]: candidate id of the j-th expression in the i-th append permutation.
+        # ids[i, j]: candidate id of the j-th expression
+        #   in the i-th append permutation.
         # res[i, j, k] = __cache[ids[i, j], k]
         res = ([self.__cache[arr_ids[:, i], :] for i in range(ep.N_X//2)] +
-               [self.__paired_cache[arr_ids[:, i], :] for i in range(ep.N_X//2)[::-1]])
+               [self.__paired_cache[arr_ids[:, i], :]
+               for i in range(ep.N_X//2)[::-1]])
         res = torch.stack(res, dim=1)
         return res
 
@@ -150,7 +192,8 @@ class AppendFilter(object):
         """Store found permutations
 
         Args:
-            found_apd_ids: A indexing numpy array of found append terms of size [found_size, N_X//2].
+            found_apd_ids: A indexing numpy array of found append terms
+                of size [found_size, N_X//2].
             group: A list of string containing the original group.
         """
         for id_grp_apd in found_apd_ids:
@@ -159,9 +202,10 @@ class AppendFilter(object):
                 str_expr = "{}+{}".format(group[i], self.__cache_exprs[id_t])
                 str_grp.append(str_expr)
             for i, id_t in enumerate(id_grp_apd[::-1]):
-                str_expr = "{}+{}".format(group[ep.N_X//2+i], self.__cache_paired_exprs[id_t])
+                str_expr = "{}+{}".format(group[ep.N_X//2+i],
+                                          self.__cache_paired_exprs[id_t])
                 str_grp.append(str_expr)
-            self.__res_print.append(";".join(str_grp))
+            self.__res_print.append("\n".join(str_grp))
 
     def test_permutation(self, res):
         """Test permutation according to the outputs.
@@ -171,13 +215,15 @@ class AppendFilter(object):
                 Of size [batch, expressions, input_values]
 
         Returns:
-            A boolean torch tensor indicating whether each group is permutation.
+            A boolean torch tensor indicating
+                whether each group is permutation.
             Of size [batch].
         """
         res = res.long()
         # Convert bits to scales
         res = sum([res[:, i, :] << i for i in range(ep.N_X)])
-        # A group is permutation iff sorted outputs exactly equal the standard outputs.
+        # A group is permutation iff
+        # sorted outputs exactly equal the standard outputs.
         res = res.sort(dim=1)[0]
         is_perm = (res == self.__standard).all(dim=1)
         return is_perm
@@ -188,13 +234,13 @@ def main():
     """
     with open("half_permutations.txt", "r") as txt_file:
         str_perm = txt_file.read()
-    list_str_grps = str_perm.split()
-    list_grps = [len_t.split(";") for len_t in list_str_grps]
+    list_str_grps = str_perm.split("\n\n")
+    list_grps = [len_t.split("\n") for len_t in list_str_grps]
     append_filter = AppendFilter(list_grps)
     res = append_filter.run()
     print("Find {} permutations!".format(len(res)))
-    with open("permutations.txt", "w") as txt_file:
-        txt_file.write("\n".join(res))
+    with open("permutations3.txt", "w") as txt_file:
+        txt_file.write("\n\n".join(res))
 
 
 if __name__ == "__main__":
