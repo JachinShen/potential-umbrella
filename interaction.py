@@ -7,6 +7,7 @@ import expression as ep
 import group as grp
 import utils
 
+
 def main():
     """Main
     """
@@ -14,6 +15,7 @@ def main():
         "1: test balance of expression. \n"
         "2: test permutation of group. \n"
         "3: generate n-degree terms. \n"
+        "4: expand product. \n"
     )
 
     cmd = input()
@@ -23,8 +25,11 @@ def main():
         test_permutation()
     elif cmd == "3":
         generate_terms()
+    elif cmd == "4":
+        expand_product()
     else:
         print("Unknown command! Exit!")
+
 
 def test_permutation():
     """Test permutation
@@ -60,6 +65,7 @@ def test_balance():
         else:
             print("Imbalance!")
 
+
 def generate_terms():
     """Generate n-degree terms
     """
@@ -74,6 +80,16 @@ def generate_terms():
         mask = (deg_terms == deg)
         expr = ep.Expr(mat=all_terms[mask])
         print(expr)
+
+
+def expand_product():
+    while True:
+        print("Please input expression1:")
+        expr1 = ep.Expr(input())
+        print("Please input expression2:")
+        expr2 = ep.Expr(input())
+        print("Product: ", expr1*expr2)
+
 
 if __name__ == "__main__":
     main()

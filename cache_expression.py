@@ -13,26 +13,24 @@ def main():
     # Appear definitely.
     """
     base_terms = ["x{}".format(i) for i in range(ep.N_X//2, ep.N_X)]
-    base_terms = [
-        # "x4+x4x5x6+x5x6x7+x1x2x3x4x5x6+x0x1x2x3x4x5x6",
-        # "x5+x4x6x7+x5x6x7+x0x1x2x5x6x7+x0x1x2x3x4x5x7",
-        # "x6+x4x5x7+x4x6x7+x0x1x3x4x6x7+x0x1x2x3x4x6x7",
-        # "x7+x4x5x6+x4x5x7+x0x2x3x4x5x7+x0x1x2x3x5x6x7",
-        "x4+x4x5x6+x5x6x7",
-        "x5+x4x6x7+x5x6x7",
-        "x6+x4x5x7+x4x6x7",
-        "x7+x4x5x6+x4x5x7",
-    ]
     """
     base_terms = [
         # "x4+x0x1+x2x3+x0x2+x1x3+x4x5x6+x5x6x7",
         # "x5+x1x2+x0x3+x0x2+x1x3+x5x6x7+x6x7x4",
         # "x6+x0x1+x2x3+x0x2+x1x3+x6x7x4+x7x4x5",
         # "x7+x1x2+x0x3+x0x2+x1x3+x7x4x5+x4x5x6",
-        "x4+x0x1+x2x3+x0x2+x1x3",
-        "x5+x1x2+x0x3+x0x2+x1x3",
-        "x6+x0x1+x2x3+x0x2+x1x3",
-        "x7+x1x2+x0x3+x0x2+x1x3",
+        # "x4+x0x1+x2x3+x0x2+x1x3",
+        # "x5+x1x2+x0x3+x0x2+x1x3",
+        # "x6+x0x1+x2x3+x0x2+x1x3",
+        # "x7+x1x2+x0x3+x0x2+x1x3",
+        "x4+x0x1+x0x2+x1x3+x2x3",
+        "x5+x0x1+x0x2+x1x3+x2x3",
+        "x6+x0x1+x1x2+x0x3+x2x3",
+        "x7+x0x1+x1x2+x0x3+x2x3",
+        # "x4+x0x1+x0x2+x1x3+x2x3",
+        # "x5+x0x2+x1x2+x0x3+x1x3",
+        # "x6+x0x1+x0x2+x1x3+x2x3",
+        # "x7+x0x2+x1x2+x0x3+x1x3",
     ]
     # Candidates.
     cand_terms = [
@@ -52,6 +50,15 @@ def main():
             "x4x5x6", "x5x6x7", "x6x7x4", "x7x4x5",
         ], 2),
         ([
+            "x0x1+x2x3", "zero"
+        ], 0),
+        ([
+            "x0x2+x1x3", "zero"
+        ], 0),
+        ([
+            "x1x2+x0x3", "zero"
+        ], 0),
+        ([
             "x4x5+x6x7", "zero"
         ], 1),
         ([
@@ -60,18 +67,6 @@ def main():
         ([
             "x5x6+x4x7", "zero"
         ], 1),
-        ([
-            "x4x5x6+x5x6x7", "zero"
-        ], 0),
-        ([
-            "x5x6x7+x6x7x4", "zero"
-        ], 0),
-        ([
-            "x6x7x4+x7x4x5", "zero"
-        ], 0),
-        ([
-            "x7x4x5+x4x5x6", "zero"
-        ], 0),
     ]
     cached_exprs_grp = []
     # Find balance candidates for every expression.

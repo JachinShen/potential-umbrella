@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import utils
 
-N_X = 8
+N_X = 16
 ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
 LEN_ALPHA = len(ALPHABET)
 N_INPUT_X = 2**N_X  # number of possible values of X

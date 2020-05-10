@@ -30,7 +30,6 @@ class Inverse(object):
             group = ep.ExprBatch(group)
             truth_table = group.run().cpu().numpy()
         invert_table = self.__get_invert(truth_table)
-        print(invert_table.shape)
         test_table = self.__get_invert(invert_table)
         print("Check permutation: {}".format(
             (test_table == truth_table).all()))
@@ -93,22 +92,11 @@ class Inverse(object):
 def main():
     """Main
     """
-    with open("permutations3.txt", "r") as txt_file:
-        str_perm = txt_file.read()
-    list_str_grps = str_perm.split("\n\n")
-    list_grps = [len_t.split("\n") for len_t in list_str_grps]
+    truth_table = np.load("sha256.npy")
+    truth_table = np.expand_dims(truth_table, axis=1)
+    truth_table = np.unpackbits(truth_table, axis=1).T
     inv = Inverse()
-    for group in list_grps:
-        inv.run(group)
-        print("=======================")
-    """
-    print("Please input truth table:")
-    list_value = np.array([int(input()) for i in range(ep.N_INPUT_X)])
-    list_value = utils.unpack_arr_scale(list_value, ep.N_X).T
-    print(list_value)
-    inv = Inverse()
-    inv.run(truth_table=list_value, invert=False)
-    """
+    inv.run(truth_table=truth_table)
 
 
 if __name__ == "__main__":
