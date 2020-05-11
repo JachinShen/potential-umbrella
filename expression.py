@@ -59,13 +59,14 @@ class Expr(object):
                     chars = term.split("x")[1:]
                     chars = np.array(list(map(int, chars)))
                     mat[i, chars+1] = True
+                    mat[i, -1] = True
                 """
                 for j, char in enumerate(ALPHABET):
                     if char in term:
                         mat[i, j] = True
                 """
             # Every term implictly has char "one".
-            mat[:, -1] = True
+            # mat[:, -1] = True
         # Else use the passed mat.
         n_terms = len(mat)
 
@@ -156,6 +157,10 @@ class Expr(object):
     def __mul__(self, other):
         if isinstance(other, str):
             other = Expr(other)
+        if len(self.mat) == 0:
+            return Expr("zero")
+        if len(other.mat) == 0:
+            return Expr("zero")
         new_mat = []
         for p, q in itertools.product(self.mat, other.mat):
             new_mat.append(p | q)
@@ -208,12 +213,22 @@ class Expr(object):
     def __repr__(self):
         """Get human readable string.
         """
+        if len(self.mat) == 0:
+            return "zero"
         list_str_terms = []
         for arr_term in self.mat:
             char_id = np.nonzero(arr_term)[0]
-            if len(char_id) == 1 and char_id[0] == LEN_ALPHA - 1:  # only "one"
-                list_str_terms.append("one")
+            if len(char_id) == 1:
+                if char_id[0] == LEN_ALPHA - 1:  # only "one"
+                    list_str_terms.append("one")
+                elif char_id[0] == 0:
+                    list_str_terms.append("zero")
+                else:
+                    list_str_terms.append(ALPHABET[char_id[0]])
             else:  # other characters exist, ignore "one"
+                if 0 in char_id:
+                    list_str_terms.append("zero")
+                    continue
                 # char_id[-1]: "one"
                 list_str_chars = [ALPHABET[i] for i in char_id[:-1]]
                 str_term = "".join(list_str_chars)

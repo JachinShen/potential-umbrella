@@ -3,6 +3,7 @@ import group as grp
 import itertools
 
 
+
 def main():
     names = globals()
     list_x = ["x{}".format(i) for i in range(8)]
@@ -43,59 +44,79 @@ def main():
     x14 = ep.Expr("x14")
     x15 = ep.Expr("x15")
     one = ep.Expr("one")
+    zero = ep.Expr("zero")
     C = ep.Expr("x8x9x10x11x12x13x14x15")
-    i, j, k, u, v, w, p = x8, x9, x10, x11, x12, x13, x14
+    i, j, k, u, v, w, p, q = x8, x9, x10, x11, x12, x13, x14, x15
+
+    def theta(a, x1, x2):
+        return a*x1+(a+one)*x2
 
     y0 = (
-        x4+x0x1+x0x2+x1x3+x2x3+(x4x5+x6x7)*i+(x4x6+x5x7)*j+(x4x7+x5x6)*k
-        + ((x4x5x6+x5x6x7)*p+(x4x5x7+x5x6x7)*(p+one))*(i+j+k+one)
-        + ((x4x5x6+x4x6x7)*(p+one)+(x4x5x7+x4x6x7)*p)*(i+j+k)
+        x4+x0x1+x0x2+x1x3+x2x3
+        + i*(x4x5+x6x7)+j*(x4x6+x5x7)+k*(x4x7+x5x6)
+        + ((x4x5x6+x5x6x7)*p+(x4x5x7*q+x4x6x7*(q+one)+x5x6x7)*(p+one))*(i+j+k+one)
+        + ((x4x5x6+x4x6x7*q+x4x5x7*(q+one))*(p+one)+(x4x5x7+x4x6x7)*p)*(i+j+k)
     )
 
     y1 = (
-        x5+x0x1+x0x2+x1x3+x2x3+(x4x5+x6x7)*i+(x4x6+x5x7)*j+(x4x7+x5x6)*k
-        + ((x4x5x7+x4x6x7)*p+(x4x5x6+x4x6x7)*(p+one))*(i+j+k+one)
-        + ((x4x5x7+x5x6x7)*(p+one)+(x4x5x6+x5x6x7)*p)*(i+j+k)
+        x5+x0x2+x1x3+(x0x1+x2x3)*q+(x1x2+x0x3)*(q+one)
+        +(x4x5+x6x7)*(i*((p+one)*(q+one)+one)+(i+one)*(p+one)*(q+one))
+        +(x4x6+x5x7)*j
+        +(x4x7+x5x6)*(k*((p+one)*(q+one)+one)+(k+one)*(p+one)*(q+one))
+        + ((x4x5x7*q+x5x6x7*(q+one)+x4x6x7)*p+(x4x5x6*q+x4x5x7*(q+one)+x4x6x7)*(p+one))*(i+j+k+one)
+        + ((x4x5x7*q+x4x5x6*(q+one)+x5x6x7)*(p+one)+(x4x5x6+x5x6x7*q+x4x5x7*(q+one))*p)*(i+j+k)
     )
 
     y2 = (
-        x6+x0x1+x1x2+x0x3+x2x3+(x4x5+x6x7)*i+(x4x6+x5x7) *
-        (j*p+(j+one)*(p+one))+(x4x7+x5x6)*(k*p+(k+one)*(p+one))
-        + ((x4x5x7+x5x6x7)*p+(x4x5x7+x4x6x7)*(p+one))*(i+j+k+one)
-        + ((x4x5x6+x5x6x7)*(p+one)+(x4x5x6+x4x6x7)*p)*(i+j+k)
+        x6+x0x1+x2x3+(x1x2+x0x3)*q+(x0x2+x1x3)*(q+one)
+        +(x4x5+x6x7)*i
+        +(x4x6+x5x7)*(j*((p+one)*q+one)+(j+one)*(p+one)*q)
+        +(x4x7+x5x6)*(k*((p+one)*q+one)+(k+one)*(p+one)*q)
+        + (((x4x5x7+x5x6x7)*q+(x4x6x7+x4x5x7)*(q+one))*p+(x4x5x7+x4x5x6*(q+one)+x4x6x7*q)*(p+one))*(i+j+k+one)
+        + ((x4x5x6*q+x4x6x7*(q+one)+x5x6x7)*(p+one)+(x4x5x6+x4x6x7*q+x5x6x7*(q+one))*p)*(i+j+k)
     )
 
     y3 = (
-        x7+x0x1+x1x2+x0x3+x2x3+(x4x5+x6x7)*i+(x4x6+x5x7) *
-        (j*p+(j+one)*(p+one))+(x4x7+x5x6)*(k*p+(k+one)*(p+one))
-        + ((x4x5x6+x4x6x7)*p+(x4x5x6+x5x6x7)*(p+one))*(i+j+k+one)
-        + ((x4x5x7+x4x6x7)*(p+one)+(x4x5x7+x5x6x7)*p)*(i+j+k)
+        x7+x1x2+x0x3+(x0x1+x2x3)*q+(x0x2+x1x3)*(q+one)
+        +(x4x5+x6x7)*(i*((p+one)*(q+one)+one)+(i+one)*(p+one)*(q+one))
+        +(x4x6+x5x7)*(j*((p+one)*q+one)+(j+one)*(p+one)*q)
+        +(x4x7+x5x6)*(k*p+(k+one)*(p+one))
+        + ((x4x5x6+x4x6x7*q+x4x5x7*(q+one))*p+(x4x5x6+x5x6x7)*(p+one))*(i+j+k+one)
+        + ((x4x5x7+x4x6x7)*(p+one)+(x4x5x7*q+x4x6x7*(q+one)+x5x6x7)*p)*(i+j+k)
     )
 
     y7 = (
-        x3+x7+x7x6+x7x5+x6x4+x5x4+(x3x2+x1x0)*i+(x3x1+x2x0)*j+(x3x0+x2x1)*k
-        + ((x3x2x1+x2x1x0)*p+(x3x2x0+x2x1x0)*(p+one))*(i+j+k+one)
-        + ((x3x2x1+x3x1x0)*(p+one)+(x3x2x0+x3x1x0)*p)*(i+j+k)
+        x3+x7+x7x6+x7x5+x6x4+x5x4
+        + (x3x2+x1x0)*i+(x3x1+x2x0)*j+(x3x0+x2x1)*k
+        + ((x3x2x1+x2x1x0)*p+(x3x2x0*q+x3x1x0*(q+one)+x2x1x0)*(p+one))*(i+j+k+one)
+        + ((x3x2x1+x3x1x0*q+x3x2x0*(q+one))*(p+one)+(x3x2x0+x3x1x0)*p)*(i+j+k)
     )
 
     y6 = (
-        x2+x6+x7x6+x7x5+x6x4+x5x4+(x3x2+x1x0)*i+(x3x1+x2x0)*j+(x3x0+x2x1)*k
-        + ((x3x2x0+x3x1x0)*p+(x3x2x1+x3x1x0)*(p+one))*(i+j+k+one)
-        + ((x3x2x0+x2x1x0)*(p+one)+(x3x2x1+x2x1x0)*p)*(i+j+k)
+        x2+x6+x7x5+x6x4+(x7x6+x5x4)*q+(x6x5+x7x4)*(q+one)
+        +(x3x2+x1x0)*(i*((p+one)*(q+one)+one)+(i+one)*(p+one)*(q+one))
+        +(x3x1+x2x0)*j
+        +(x3x0+x2x1)*(k*((p+one)*(q+one)+one)+(k+one)*(p+one)*(q+one))
+        + ((x3x2x0*q+x2x1x0*(q+one)+x3x1x0)*p+(x3x2x1*q+x3x2x0*(q+one)+x3x1x0)*(p+one))*(i+j+k+one)
+        + ((x3x2x0*q+x3x2x1*(q+one)+x2x1x0)*(p+one)+(x3x2x1+x2x1x0*q+x3x2x0*(q+one))*p)*(i+j+k)
     )
 
     y5 = (
-        x1+x5+x7x6+x6x5+x7x4+x5x4+(x3x2+x1x0)*i+(x3x1+x2x0) *
-        (j*p+(j+one)*(p+one))+(x3x0+x2x1)*(k*p+(k+one)*(p+one))
-        + ((x3x2x0+x2x1x0)*p+(x3x2x0+x3x1x0)*(p+one))*(i+j+k+one)
-        + ((x3x2x1+x2x1x0)*(p+one)+(x3x2x1+x3x1x0)*p)*(i+j+k)
+        x1+x5+x7x6+x5x4+(x6x5+x7x4)*q+(x7x5+x6x4)*(q+one)
+        +(x3x2+x1x0)*i
+        +(x3x1+x2x0)*(j*((p+one)*q+one)+(j+one)*(p+one)*q)
+        +(x3x0+x2x1)*(k*((p+one)*q+one)+(k+one)*(p+one)*q)
+        + (((x3x2x0+x2x1x0)*q+(x3x1x0+x3x2x0)*(q+one))*p+(x3x2x0+x3x2x1*(q+one)+x3x1x0*q)*(p+one))*(i+j+k+one)
+        + ((x3x2x1*q+x3x1x0*(q+one)+x2x1x0)*(p+one)+(x3x2x1+x3x1x0*q+x2x1x0*(q+one))*p)*(i+j+k)
     )
 
     y4 = (
-        x0+x4+x7x6+x6x5+x7x4+x5x4+(x3x2+x1x0)*i+(x3x1+x2x0) *
-        (j*p+(j+one)*(p+one))+(x3x0+x2x1)*(k*p+(k+one)*(p+one))
-        + ((x3x2x1+x3x1x0)*p+(x3x2x1+x2x1x0)*(p+one))*(i+j+k+one)
-        + ((x3x2x0+x3x1x0)*(p+one)+(x3x2x0+x2x1x0)*p)*(i+j+k)
+        x0+x4+x6x5+x7x4+(x7x6+x5x4)*q+(x7x5+x6x4)*(q+one)
+        +(x3x2+x1x0)*(i*((p+one)*(q+one)+one)+(i+one)*(p+one)*(q+one))
+        +(x3x1+x2x0)*(j*((p+one)*q+one)+(j+one)*(p+one)*q)
+        +(x3x0+x2x1)*(k*p+(k+one)*(p+one))
+        + ((x3x2x1+x3x1x0*q+x3x2x0*(q+one))*p+(x3x2x1+x2x1x0)*(p+one))*(i+j+k+one)
+        + ((x3x2x0+x3x1x0)*(p+one)+(x3x2x0*q+x3x1x0*(q+one)+x2x1x0)*p)*(i+j+k)
     )
 
     """
