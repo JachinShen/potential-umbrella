@@ -36,48 +36,11 @@ class AppendFilter(object):
             "x0x1x3x4x5x6x7",
             "x0x2x3x4x5x6x7",
             "x1x2x3x4x5x6x7",
-
-            # "x0x1x2x3x4x5x6x7x8",
-            # "x0x1x2x3x4x5x6x7x9",
-            # "x0x1x2x3x4x5x6x8x9",
-            # "x0x1x2x3x4x5x7x8x9",
-            # "x0x1x2x3x4x6x7x8x9",
-            # "x0x1x2x3x5x6x7x8x9",
-            # "x0x1x2x4x5x6x7x8x9",
-            # "x0x1x3x4x5x6x7x8x9",
-            # "x0x2x3x4x5x6x7x8x9",
-            # "x1x2x3x4x5x6x7x8x9",
-
-            # "x0x1x2x3x4x5x6x7x8x9x10",
-            # "x0x1x2x3x4x5x6x7x8x9x11",
-            # "x0x1x2x3x4x5x6x7x8x10x11",
-            # "x0x1x2x3x4x5x6x7x9x10x11",
-            # "x0x1x2x3x4x5x6x8x9x10x11",
-            # "x0x1x2x3x4x5x7x8x9x10x11",
-            # "x0x1x2x3x4x6x7x8x9x10x11",
-            # "x0x1x2x3x5x6x7x8x9x10x11",
-            # "x0x1x2x4x5x6x7x8x9x10x11",
-            # "x0x1x3x4x5x6x7x8x9x10x11",
-            # "x0x2x3x4x5x6x7x8x9x10x11",
-            # "x1x2x3x4x5x6x7x8x9x10x11",
         ], [
             "x1x2x3x4x5x6",
             "x0x2x3x4x5x7",
             "x0x1x3x4x6x7",
             "x0x1x2x5x6x7",
-
-            # "x1x2x3x4x5x6x7x8",
-            # "x0x2x3x4x5x6x7x9",
-            # "x0x1x3x4x5x6x8x9",
-            # "x0x1x2x4x5x7x8x9",
-            # "x0x1x2x3x6x7x8x9",
-
-            # "x1x2x3x4x5x6x7x8x9x10",
-            # "x0x2x3x4x5x6x7x8x9x11",
-            # "x0x1x3x4x5x6x7x8x10x11",
-            # "x0x1x2x4x5x6x7x9x10x11",
-            # "x0x1x2x3x5x6x8x9x10x11",
-            # "x0x1x2x3x4x7x8x9x10x11",
         ],
     ]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
@@ -232,14 +195,14 @@ class AppendFilter(object):
 def main():
     """Main
     """
-    with open("half_permutations.txt", "r") as txt_file:
+    with open("cache/half_permutations.txt", "r") as txt_file:
         str_perm = txt_file.read()
     list_str_grps = str_perm.split("\n\n")
     list_grps = [len_t.split("\n") for len_t in list_str_grps]
     append_filter = AppendFilter(list_grps)
     res = append_filter.run()
     print("Find {} permutations!".format(len(res)))
-    with open("permutations3.txt", "w") as txt_file:
+    with open("cache/permutations.txt", "w") as txt_file:
         txt_file.write("\n\n".join(res))
 
 

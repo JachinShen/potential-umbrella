@@ -49,7 +49,7 @@ class PermFilter(object):
         """Select and print found permutations.
         """
         cnt = 0
-        batch_size = 80000
+        batch_size = 10000
         list_ids = []
         # Try every combination of candidates.
         for ids in product(*[list(range(self.__n_cand))
@@ -138,7 +138,7 @@ class PermFilter(object):
 def main():
     """Main
     """
-    with open("cached_balance_expression.txt", "r") as cache_file:
+    with open("cache/cached_balance_expression.txt", "r") as cache_file:
         str_cached = cache_file.read()
     str_cands_expr = str_cached.split()
     expr_cand = [list(map(ep.Expr, expr.split("|")))
@@ -146,7 +146,7 @@ def main():
     perm_filter = PermFilter(expr_cand)
     res = perm_filter.run()
     print("Find {} half permutations!".format(len(res)))
-    with open("half_permutations.txt", "w") as txt_file:
+    with open("cache/half_permutations.txt", "w") as txt_file:
         txt_file.write("\n\n".join(res))
 
 

@@ -29,8 +29,8 @@ class Inverse(object):
         if truth_table is None:
             group = ep.ExprBatch(group)
             truth_table = group.run().cpu().numpy()
+        np.savetxt("truth_table.txt", truth_table, fmt="%d")
         invert_table = self.__get_invert(truth_table)
-        print(invert_table.shape)
         test_table = self.__get_invert(invert_table)
         print("Check permutation: {}".format(
             (test_table == truth_table).all()))
@@ -39,10 +39,6 @@ class Inverse(object):
         else:
             self.__restore_expr(truth_table, invert)
 
-        m_terms = np.concatenate(self.contained_m_terms, axis=0)
-        m_terms = np.multiply(m_terms, ep.EXP_ALPHA).sum(axis=1)
-        m_terms = np.unique(m_terms)
-        print("Cover {} minimium terms!".format(len(m_terms)))
 
     def __restore_expr(self, invert_table, invert=True):
         for i, out_x in enumerate(invert_table):
@@ -93,7 +89,7 @@ class Inverse(object):
 def main():
     """Main
     """
-    with open("permutations3.txt", "r") as txt_file:
+    with open("cache/permutations.txt", "r") as txt_file:
         str_perm = txt_file.read()
     list_str_grps = str_perm.split("\n\n")
     list_grps = [len_t.split("\n") for len_t in list_str_grps]
@@ -101,14 +97,7 @@ def main():
     for group in list_grps:
         inv.run(group)
         print("=======================")
-    """
-    print("Please input truth table:")
-    list_value = np.array([int(input()) for i in range(ep.N_INPUT_X)])
-    list_value = utils.unpack_arr_scale(list_value, ep.N_X).T
-    print(list_value)
-    inv = Inverse()
-    inv.run(truth_table=list_value, invert=False)
-    """
+        break
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ class TestExpression(unittest.TestCase):
         """
         expr = ep.Expr("zero+one+x0+x1x2")
         self.assertTrue(isinstance(expr, ep.Expr))
-        self.assertEqual(expr.__repr__(), "one+zero+x0+x1x2")
+        self.assertEqual(expr.__repr__(), "zero+one+x0+x1x2")
 
     def test_expression(self):
         """Test single expression.

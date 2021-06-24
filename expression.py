@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import utils
 
-N_X = 16
+N_X = 8
 ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
 LEN_ALPHA = len(ALPHABET)
 N_INPUT_X = 2**N_X  # number of possible values of X
@@ -173,7 +173,7 @@ class Expr(object):
         Returns:
             An integer 1-d numpy array of size [n_terms].
         """
-        mat_x = self.mat[:, 1:-1]
+        mat_x = self.mat[:, :-1]
         return utils.pack_arr_bits(mat_x)
 
     def get_pair_expr(self):
@@ -302,13 +302,13 @@ class RegBatch(object):
     def cache_terms():
         """Cache the outputs of the terms on all possible inputs.
         """
-        cache_file = "cache_terms-{}.npy".format(N_X)
+        cache_file = "cache/cache_terms-{}.npy".format(N_X)
         if os.path.exists(cache_file):
             return np.load(cache_file)
         else:
             print("Cache...Please wait!")
             n_inputs = n_terms = N_INPUT_X
-            cache_t = np.zeros([n_terms, n_inputs], dtype=np.bool)
+            cache_t = np.zeros([n_terms+1, n_inputs], dtype=np.bool)
             for i in range(n_terms):
                 mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
                 mat[0, 1] = False  # "zero" = 0
@@ -316,6 +316,7 @@ class RegBatch(object):
                 mat[0, -1] = True  # "one" = 1
                 expr = Expr("", mat)
                 cache_t[i, :] = expr.get_all_out()
+            cache_t[-1, :] = np.zeros([N_INPUT_X], dtype=np.bool)
             np.save(cache_file, cache_t)
             return cache_t
 
