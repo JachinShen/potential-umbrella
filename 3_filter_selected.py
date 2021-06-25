@@ -89,7 +89,7 @@ class AppendFilter(object):
         """
         group = self.__grps[grp_id]
         out_grp = self.__v_grps[grp_id]
-        batch_size = 80000
+        batch_size = 10000
         list_ids = []
         cnt = 0
         # For each permutation (not combination) of __append_terms.

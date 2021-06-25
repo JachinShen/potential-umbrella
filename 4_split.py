@@ -65,6 +65,7 @@ def main():
                 grp.Group(xor_test_grp).test_permutation()):
             ctr += 1
             recombined_permutations.append("\n".join(test_grp))
+            print("Got {} new permutations!".format(ctr))
 
     print("Got {} new permutations!".format(ctr))
     with open("cache/full_permutations.txt", "w") as cache_file:
