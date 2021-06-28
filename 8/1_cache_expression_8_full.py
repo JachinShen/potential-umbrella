@@ -49,7 +49,7 @@ def main():
         cached_exprs_grp.append("|".join(cand_exprs))
         cnt = len(cand_exprs)
     # Use txt for convenience of reading.
-    with open("cache/cached_balance_expression.txt", "w") as cache_file:
+    with open("cache/cached_balance_expression_8.txt", "w") as cache_file:
         for line in cached_exprs_grp:
             cache_file.write(line)
             cache_file.write("\n")
