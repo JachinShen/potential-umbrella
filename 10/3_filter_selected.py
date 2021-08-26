@@ -28,19 +28,22 @@ class AppendFilter(object):
     """
     __append_terms = [
         [
-            "x0x1x2x3x4x5x6",
-            "x0x1x2x3x4x5x7",
-            "x0x1x2x3x4x6x7",
-            "x0x1x2x3x5x6x7",
-            "x0x1x2x4x5x6x7",
-            "x0x1x3x4x5x6x7",
-            "x0x2x3x4x5x6x7",
-            "x1x2x3x4x5x6x7",
+            "x0x1x2x3x4x5x6x7x8",
+            "x0x1x2x3x4x5x6x7x9",
+            "x0x1x2x3x4x5x6x8x9",
+            "x0x1x2x3x4x5x7x8x9",
+            "x0x1x2x3x4x6x7x8x9",
+            "x0x1x2x3x5x6x7x8x9",
+            "x0x1x2x4x5x6x7x8x9",
+            "x0x1x3x4x5x6x7x8x9",
+            "x0x2x3x4x5x6x7x8x9",
+            "x1x2x3x4x5x6x7x8x9",
         ], [
-            "x1x2x3x4x5x6",
-            "x0x2x3x4x5x7",
-            "x0x1x3x4x6x7",
-            "x0x1x2x5x6x7",
+            "x1x2x3x4x5x6x7x8",
+            "x0x2x3x4x5x6x7x9",
+            "x0x1x3x4x5x6x8x9",
+            "x0x1x2x4x5x7x8x9",
+            "x0x1x2x3x6x7x8x9",
         ],
     ]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)

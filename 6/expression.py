@@ -9,8 +9,9 @@ import itertools
 import numpy as np
 import torch
 import utils
+from itertools import combinations
 
-N_X = 12
+N_X = 6
 ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
 LEN_ALPHA = len(ALPHABET)
 N_INPUT_X = 2**N_X  # number of possible values of X
@@ -19,6 +20,15 @@ EXP_ALPHA = np.logspace(
     0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
 EXP_X = np.logspace(
     0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
+TERMS = [
+    list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i))) 
+    for i in range(1, N_X)]
+TERMS_FIRST_HALF = [
+    list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], i))) 
+    for i in range(2, N_X//2)]
+TERMS_SECOND_HALF = [
+    list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], i))) 
+    for i in range(2, N_X//2)]
 
 
 class Expr(object):
@@ -47,7 +57,7 @@ class Expr(object):
             # row -> term
             # col -> character
             # True if the term has this character
-            mat = np.zeros([n_terms, LEN_ALPHA], dtype=np.bool)
+            mat = np.zeros([n_terms, LEN_ALPHA], dtype=bool)
             for i, term in enumerate(terms):
                 if ALPHABET[0] in term:
                     mat[i, 0] = True
@@ -87,11 +97,11 @@ class Expr(object):
             mat_deg = mat.sum(axis=1)
             mat_exp = np.multiply(mat, EXP_ALPHA).sum(axis=1)
             arg_sort = np.lexsort((mat_exp, mat_deg))
-            mat = mat[arg_sort].astype(np.bool)
+            mat = mat[arg_sort].astype(bool)
         self.mat = mat
         self.n_terms = len(mat)
         # See __call__ for reason of inverse.
-        self.mask = ~mat.astype(np.bool)
+        self.mask = ~mat.astype(bool)
 
     def __call__(self, input_x: np.array):
         """ Compute the value of expression on the input x.
@@ -204,7 +214,7 @@ class Expr(object):
         """Get all possible input values.
         """
         input_x = np.zeros(
-            [N_INPUT_X, LEN_ALPHA], dtype=np.bool)
+            [N_INPUT_X, LEN_ALPHA], dtype=bool)
         input_x[:, 0] = False  # "zero" = 0
         input_x[:, 1:-1] = utils.get_all_unpacked_bits(N_X)
         input_x[:, -1] = True  # "one" = 1
@@ -308,15 +318,15 @@ class RegBatch(object):
         else:
             print("Cache...Please wait!")
             n_inputs = n_terms = N_INPUT_X
-            cache_t = np.zeros([n_terms+1, n_inputs], dtype=np.bool)
+            cache_t = np.zeros([n_terms+1, n_inputs], dtype=bool)
             for i in range(n_terms):
-                mat = np.zeros([1, LEN_ALPHA], dtype=np.bool)
+                mat = np.zeros([1, LEN_ALPHA], dtype=bool)
                 mat[0, 1] = False  # "zero" = 0
                 mat[0, 1:-1] = utils.unpack_scale(i, N_X)
                 mat[0, -1] = True  # "one" = 1
                 expr = Expr("", mat)
                 cache_t[i, :] = expr.get_all_out()
-            cache_t[-1, :] = np.zeros([N_INPUT_X], dtype=np.bool)
+            cache_t[-1, :] = np.zeros([N_INPUT_X], dtype=bool)
             np.save(cache_file, cache_t)
             return cache_t
 
@@ -410,12 +420,20 @@ if __name__ == "__main__":
         test = expr_batch.run().numpy()
         if (valid == test).all():
             print("Right")
-        """
         list_exprs = [
             "x4+x4x5+x5x6"
         ]
         expr_batch = ExprBatch(list_exprs)
         test = expr_batch.run().long()
         print(test)
+        e1 = Expr("zero+x1+zero+zero+x2")
+        print(e1)
+        e2 = Expr("zero+x1+zero+zero+x2+zero")
+        print(e2)
+        print(e1.get_all_out() == e2.get_all_out())
+        """
+        print(TERMS)
+        print(TERMS_FIRST_HALF)
+        print(TERMS_SECOND_HALF)
 
     main()

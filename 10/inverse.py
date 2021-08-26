@@ -32,27 +32,30 @@ class Inverse(object):
         np.savetxt("truth_table.txt", truth_table, fmt="%d")
         invert_table = self.__get_invert(truth_table)
         test_table = self.__get_invert(invert_table)
-        print("Check permutation: {}".format(
-            (test_table == truth_table).all()))
+        # print("Check permutation: {}".format(
+            # (test_table == truth_table).all()))
         if invert:
-            self.__restore_expr(invert_table, invert)
+            return self.__restore_expr(invert_table, invert)
         else:
             self.__restore_expr(truth_table, invert)
 
 
     def __restore_expr(self, invert_table, invert=True):
+        N_terms = []
         for i, out_x in enumerate(invert_table):
             mini_term_id = np.nonzero(out_x)[0]
             mini_terms = [self.__expr_cache[i] for i in mini_term_id]
             expr = functools.reduce(ep.Expr.__add__, mini_terms)
-            print("Contain {} terms.".format(expr.n_terms))
+            # print("Contain {} terms.".format(expr.n_terms))
+            N_terms.append(expr.n_terms)
             self.contained_m_terms.append(expr.mat)
             str_exrp = str(expr)
             if invert:
                 str_exrp = str_exrp.replace("x", "y")
-                print("x{}={}".format(i, str_exrp))
+                # print("x{}={}".format(i, str_exrp))
             else:
                 print("y{}={}".format(i, str_exrp))
+        return min(N_terms)
 
     @staticmethod
     def __cache_mini_terms():
@@ -95,9 +98,14 @@ def main():
     list_grps = [len_t.split("\n") for len_t in list_str_grps]
     inv = Inverse()
     # inv.run(list_grps[1])
-    for group in list_grps[:10]:
-        inv.run(group)
-        print("=======================")
+    complexity_max = -1
+    for group in list_grps:
+        cost = inv.run(group)
+        if cost > complexity_max:
+            print("Find new complexity: {}".format(cost))
+            print("\n".join(group))
+            print("=======================")
+            complexity_max = cost
 
 
 if __name__ == "__main__":

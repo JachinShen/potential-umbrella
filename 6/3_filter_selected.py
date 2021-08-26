@@ -26,23 +26,24 @@ class AppendFilter(object):
         __cache_shape: The shape of __append_terms.
         __res_print: A list storing found permutations.
     """
-    __append_terms = [
-        [
-            "x0x1x2x3x4x5x6",
-            "x0x1x2x3x4x5x7",
-            "x0x1x2x3x4x6x7",
-            "x0x1x2x3x5x6x7",
-            "x0x1x2x4x5x6x7",
-            "x0x1x3x4x5x6x7",
-            "x0x2x3x4x5x6x7",
-            "x1x2x3x4x5x6x7",
-        ], [
-            "x1x2x3x4x5x6",
-            "x0x2x3x4x5x7",
-            "x0x1x3x4x6x7",
-            "x0x1x2x5x6x7",
-        ],
-    ]
+    # __append_terms = [
+    #     [
+    #         "x0x1x2x3x4x5x6",
+    #         "x0x1x2x3x4x5x7",
+    #         "x0x1x2x3x4x6x7",
+    #         "x0x1x2x3x5x6x7",
+    #         "x0x1x2x4x5x6x7",
+    #         "x0x1x3x4x5x6x7",
+    #         "x0x2x3x4x5x6x7",
+    #         "x1x2x3x4x5x6x7",
+    #     ], [
+    #         "x1x2x3x4x5x6",
+    #         "x0x2x3x4x5x7",
+    #         "x0x1x3x4x6x7",
+    #         "x0x1x2x5x6x7",
+    #     ],
+    # ]
+    __append_terms = [ep.TERMS[-1], ep.TERMS[-2]]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
@@ -195,14 +196,14 @@ class AppendFilter(object):
 def main():
     """Main
     """
-    with open("cache/half_permutations_8.txt", "r") as txt_file:
+    with open("cache/half_permutations.txt", "r") as txt_file:
         str_perm = txt_file.read()
     list_str_grps = str_perm.split("\n\n")
     list_grps = [len_t.split("\n") for len_t in list_str_grps]
     append_filter = AppendFilter(list_grps)
     res = append_filter.run()
     print("Find {} permutations!".format(len(res)))
-    with open("cache/permutations_8.txt", "w") as txt_file:
+    with open("cache/permutations.txt", "w") as txt_file:
         txt_file.write("\n\n".join(res))
 
 

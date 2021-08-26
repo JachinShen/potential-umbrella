@@ -18,20 +18,33 @@ def main():
         # (["x1x2+x0x3", "zero"], 1),
         # (["x4x5+x4x6+x5x7+x6x7", "x4x5+x5x6+x4x7+x6x7",
         #  "x4x6+x5x6+x4x7+x5x7", "x4x5+x4x6+x5x6+x4x7+x5x7+x6x7"], 1),
-        (["x0x1+x0x2+x1x3+x2x3", "x0x1+x1x2+x0x3+x2x3", "x0x2+x1x2+x0x3+x1x3"], 1),
+        # (["x0x1+x0x2+x1x3+x2x3", "x0x1+x1x2+x0x3+x2x3", "x0x2+x1x2+x0x3+x1x3"], 1),
         # (["x0x1+x0x2+x1x3+x2x3"], 1),
         # (["x0x1+x2x3", "x0x2+x1x3", "x1x2+x0x3"], 1),
+        ([
+            "x0x1+x2x3", "x0x1+x2x4", "x0x1+x3x4", 
+            "x0x2+x1x3", "x0x2+x1x4", "x0x2+x3x4",
+            "x0x3+x1x2", "x0x3+x1x4", "x0x3+x2x4",
+            "x0x4+x1x2", "x0x4+x1x3", "x0x4+x2x3",
+            "x1x2+x3x4",
+        ], 2)
 
-        (["x4x5+x6x7", "zero"], 1),
-        (["x4x6+x5x7", "zero"], 1),
-        (["x5x6+x4x7", "zero"], 1),
+        # (["x4x5+x6x7", "zero"], 1),
+        # (["x4x6+x5x7", "zero"], 1),
+        # (["x5x6+x4x7", "zero"], 1),
         # (["x4x5+x6x7", "x4x6+x5x7", "x5x6+x4x7"], 1),
-        (["x4x5+x4x6+x5x7+x6x7", "x4x5+x5x6+x4x7+x6x7", "x4x6+x5x6+x4x7+x5x7"], 1),
+        # (["x4x5+x4x6+x5x7+x6x7", "x4x5+x5x6+x4x7+x6x7", "x4x6+x5x6+x4x7+x5x7"], 1),
+        # ([
+        #     "x5x6+x7x8", "x5x6+x7x9", "x5x6+x8x9", 
+        #     "x5x7+x6x8", "x5x7+x6x9", "x5x7+x8x9",
+        #     "x5x8+x6x7", "x5x8+x6x9", "x5x8+x7x9",
+        #     "x5x9+x6x7", "x5x9+x6x8", "x5x9+x7x8"
+        # ], 2)
     ]
     cached_exprs_grp = []
     # Appear definitely.
     base_terms = [
-        "x4", "x5", "x6", "x7"
+        # "x4", "x5", "x6", "x7"
         # "x4+x0x1+x0x2+x1x3+x2x3",
         # "x5+x0x2+x1x2+x0x3+x1x3",
         # "x6+x0x1+x0x2+x1x3+x2x3",
@@ -56,10 +69,11 @@ def main():
         # "x5+x4x5+x4x6+x5x6+x4x7+x5x7+x6x7",
         # "x6+x4x5+x4x6+x5x6+x4x7+x5x7+x6x7",
         # "x7+x4x5+x4x6+x5x6+x4x7+x5x7+x6x7",
-        # 'x4+x4x5x6+x5x6x7',
-        # 'x5+x5x6x7+x6x7x4',
-        # 'x6+x6x7x4+x7x4x5',
-        # 'x7+x7x4x5+x4x5x6'
+        'x5+x5x6x7x8+x6x7x8x9',
+        'x6+x6x7x8x9+x7x8x9x5',
+        'x7+x7x8x9x5+x8x9x5x6',
+        "x8+x8x9x5x6+x9x5x6x7",
+        "x9+x9x5x6x7+x5x6x7x8"
     ]
     # Find balance candidates for every expression.
     for b_term in base_terms:
