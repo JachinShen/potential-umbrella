@@ -143,7 +143,7 @@ def main():
     """Main
     """
     print("[{}]: Start!".format(time.time()))
-    with open("cache/cached_balance_expression_8.txt", "r") as cache_file:
+    with open("cache/cached_balance_expression.txt", "r") as cache_file:
         str_cached = cache_file.read()
     str_cands_expr = str_cached.split()
     expr_cand = [list(map(ep.Expr, expr.split("|")))
@@ -151,7 +151,7 @@ def main():
     perm_filter = PermFilter(expr_cand)
     res = perm_filter.run()
     print("Find {} half permutations!".format(len(res)))
-    with open("cache/half_permutations_8.txt", "w") as txt_file:
+    with open("cache/half_permutations.txt", "w") as txt_file:
         txt_file.write("\n\n".join(res))
     print("[{}]: End!".format(time.time()))
 

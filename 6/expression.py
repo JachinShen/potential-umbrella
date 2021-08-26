@@ -20,16 +20,6 @@ EXP_ALPHA = np.logspace(
     0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
 EXP_X = np.logspace(
     0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
-TERMS = [
-    list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i))) 
-    for i in range(1, N_X)]
-TERMS_FIRST_HALF = [
-    list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], i))) 
-    for i in range(2, N_X//2)]
-TERMS_SECOND_HALF = [
-    list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], i))) 
-    for i in range(2, N_X//2)]
-
 
 class Expr(object):
     """Class to represent a single expression.
@@ -198,6 +188,12 @@ class Expr(object):
         mat_x = mat[:, 1:-1]
         mat[:, 1:-1] = mat_x[:, ::-1]
         return Expr("", mat)
+
+    def is_pair_same(self):
+        mat = np.copy(self.mat)
+        mat_x = mat[:, 1:-1]
+        return (mat_x == mat_x[:, ::-1]).all()
+
 
     def get_all_out(self):
         """ Get output on all possible input.
@@ -388,6 +384,22 @@ class ExprBatch():
         res = res[self.list_inverse_ids, :]
         return res
 
+# TERMS = [
+#     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i))) 
+#     for i in range(1, N_X)]
+TERMS_BASE = ALPHABET[1:-1]
+TERMS_FIRST_HALF = [
+    list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], i))) 
+    for i in range(2, N_X//2)]
+TERMS_SECOND_HALF = [
+    list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], i))) 
+    for i in range(2, N_X//2)]
+TERMS_HIGH = [
+    list(filter(lambda x: Expr(x).is_pair_same(),
+        map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-2)))),
+    list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-1)))
+]
+
 
 if __name__ == "__main__":
     def main():
@@ -432,8 +444,8 @@ if __name__ == "__main__":
         print(e2)
         print(e1.get_all_out() == e2.get_all_out())
         """
-        print(TERMS)
         print(TERMS_FIRST_HALF)
         print(TERMS_SECOND_HALF)
+        print(TERMS_HIGH)
 
     main()

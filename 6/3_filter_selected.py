@@ -43,7 +43,7 @@ class AppendFilter(object):
     #         "x0x1x2x5x6x7",
     #     ],
     # ]
-    __append_terms = [ep.TERMS[-1], ep.TERMS[-2]]
+    __append_terms = ep.TERMS_HIGH
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
