@@ -26,32 +26,33 @@ class AppendFilter(object):
         __cache_shape: The shape of __append_terms.
         __res_print: A list storing found permutations.
     """
-    __append_terms = [
-        [
-            "x0x1x2x3x4x5x6x7x8",
-            "x0x1x2x3x4x5x6x7x9",
-            "x0x1x2x3x4x5x6x8x9",
-            "x0x1x2x3x4x5x7x8x9",
-            "x0x1x2x3x4x6x7x8x9",
-            "x0x1x2x3x5x6x7x8x9",
-            "x0x1x2x4x5x6x7x8x9",
-            "x0x1x3x4x5x6x7x8x9",
-            "x0x2x3x4x5x6x7x8x9",
-            "x1x2x3x4x5x6x7x8x9",
-        ], [
-            "x1x2x3x4x5x6x7x8",
-            "x0x2x3x4x5x6x7x9",
-            "x0x1x3x4x5x6x8x9",
-            "x0x1x2x4x5x7x8x9",
-            "x0x1x2x3x6x7x8x9",
-        ],
-    ]
+    # __append_terms = [
+    #     [
+    #         "x0x1x2x3x4x5x6",
+    #         "x0x1x2x3x4x5x7",
+    #         "x0x1x2x3x4x6x7",
+    #         "x0x1x2x3x5x6x7",
+    #         "x0x1x2x4x5x6x7",
+    #         "x0x1x3x4x5x6x7",
+    #         "x0x2x3x4x5x6x7",
+    #         "x1x2x3x4x5x6x7",
+    #     ], [
+    #         "x1x2x3x4x5x6",
+    #         "x0x2x3x4x5x7",
+    #         "x0x1x3x4x6x7",
+    #         "x0x1x2x5x6x7",
+    #     ],
+    # ]
+    __append_terms = ep.TERMS_HIGH[-1]
+    __test_terms = [ep.TERMS_HIGH[-2]]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         v_grps = []
-        for group in list_grps:
+        for i, group in enumerate(list_grps):
+            list_grps[i] = group = ["+".join(eqs)
+                for eqs in zip(group, self.__append_terms)]
             batch_expr = ep.ExprBatch(group)
             v_grps.append(batch_expr.run())
         v_grps = torch.stack(v_grps, dim=0)
@@ -61,10 +62,10 @@ class AppendFilter(object):
         self.__n_grp = len(list_grps)
 
         # Cache product of candidates in __append_terms.
-        cache_shape = [len(t) for t in self.__append_terms]
+        cache_shape = [len(t) for t in self.__test_terms]
         list_exprs = []
         list_paired_exprs = []
-        for terms in itertools.product(*self.__append_terms):
+        for terms in itertools.product(*self.__test_terms):
             expr = ep.Expr("+".join(terms))
             expr_pair = expr.get_pair_expr()
             list_exprs.append(str(expr))
@@ -99,6 +100,7 @@ class AppendFilter(object):
         # product(P(8, 4), P(4, 4))
         list_cand_ids = [itertools.permutations(
             range(t), ep.N_X//2) for t in self.__cache_shape]
+        # print(list(list_cand_ids[0]))
         for ids in itertools.product(*list_cand_ids):
             cnt += 1
             ids = list(ids)
@@ -198,14 +200,14 @@ class AppendFilter(object):
 def main():
     """Main
     """
-    with open("cache/half_permutations_8.txt", "r") as txt_file:
+    with open("cache/half_permutations.txt", "r") as txt_file:
         str_perm = txt_file.read()
     list_str_grps = str_perm.split("\n\n")
     list_grps = [len_t.split("\n") for len_t in list_str_grps]
     append_filter = AppendFilter(list_grps)
     res = append_filter.run()
     print("Find {} permutations!".format(len(res)))
-    with open("cache/permutations_8.txt", "w") as txt_file:
+    with open("cache/permutations.txt", "w") as txt_file:
         txt_file.write("\n\n".join(res))
 
 

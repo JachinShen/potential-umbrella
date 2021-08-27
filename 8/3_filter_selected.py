@@ -43,13 +43,16 @@ class AppendFilter(object):
     #         "x0x1x2x5x6x7",
     #     ],
     # ]
-    __append_terms = ep.TERMS_HIGH
+    __append_terms = ep.TERMS_HIGH[-1]
+    __test_terms = [ep.TERMS_HIGH[-2]]
     __standard = torch.arange(ep.N_INPUT_X, dtype=torch.int64)
 
     def __init__(self, list_grps):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         v_grps = []
-        for group in list_grps:
+        for i, group in enumerate(list_grps):
+            list_grps[i] = group = ["+".join(eqs)
+                for eqs in zip(group, self.__append_terms)]
             batch_expr = ep.ExprBatch(group)
             v_grps.append(batch_expr.run())
         v_grps = torch.stack(v_grps, dim=0)
@@ -59,10 +62,10 @@ class AppendFilter(object):
         self.__n_grp = len(list_grps)
 
         # Cache product of candidates in __append_terms.
-        cache_shape = [len(t) for t in self.__append_terms]
+        cache_shape = [len(t) for t in self.__test_terms]
         list_exprs = []
         list_paired_exprs = []
-        for terms in itertools.product(*self.__append_terms):
+        for terms in itertools.product(*self.__test_terms):
             expr = ep.Expr("+".join(terms))
             expr_pair = expr.get_pair_expr()
             list_exprs.append(str(expr))
@@ -97,6 +100,7 @@ class AppendFilter(object):
         # product(P(8, 4), P(4, 4))
         list_cand_ids = [itertools.permutations(
             range(t), ep.N_X//2) for t in self.__cache_shape]
+        # print(list(list_cand_ids[0]))
         for ids in itertools.product(*list_cand_ids):
             cnt += 1
             ids = list(ids)
