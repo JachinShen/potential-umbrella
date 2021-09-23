@@ -12,12 +12,21 @@ def main():
     """Main"""
     # Candidates.
     cand_terms = [
-        # (ep.TERMS_FIRST_HALF[0], 2),
-        (ep.TERMS_SECOND_HALF[-1], 2),
+        # (ep.TERMS_FIRST_HALF[1], 4),
+        # (ep.TERMS_FIRST_HALF[-1], 2),
+        (ep.TERMS_SECOND_HALF[1], 4),
+        # (ep.TERMS_SECOND_HALF[-1], 2),
     ]
     cached_exprs_grp = []
     # Appear definitely.
     base_terms = ep.TERMS_BASE[ep.N_X//2:]
+    base_terms = [
+        "x5+x5x6x7x8+x6x7x8x9",
+        "x6+x5x7x8x9+x6x7x8x9",
+        "x7+x5x6x8x9+x5x7x8x9",
+        "x8+x5x6x7x9+x5x6x8x9",
+        "x9+x5x6x7x8+x5x6x7x9",
+    ]
     # Find balance candidates for every expression.
     for b_term in base_terms:
         cand_exprs = []

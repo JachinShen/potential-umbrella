@@ -195,6 +195,28 @@ class Expr(object):
         mat_x = mat[:, 1:-1]
         return (mat_x == mat_x[:, ::-1]).all()
 
+    def get_half_pair(self):
+        mat = np.copy(self.mat)
+        # mat_x = mat[:, 1:-1]
+        first_half = mat[:, 1:N_X//2+1]
+        second_half = mat[:, N_X//2+1:-1]
+        mat[:, 1:N_X//2+1] = first_half[:, ::-1]
+        mat[:, N_X//2+1:-1] = second_half[:, ::-1]
+        return Expr("", mat)
+
+    def get_first_half_pair(self):
+        mat = np.copy(self.mat)
+        first_half = mat[:, 1:N_X//2+1]
+        mat[:, 1:N_X//2+1] = ~first_half
+        return Expr("", mat)
+
+    def get_second_half_pair(self):
+        mat = np.copy(self.mat)
+        second_half = mat[:, N_X//2+1:-1]
+        mat[:, N_X//2+1:-1] = ~second_half
+        return Expr("", mat)
+
+
     def get_all_out(self):
         """ Get output on all possible input.
         """
@@ -405,6 +427,39 @@ TERMS_HIGH = [
     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-1)))
 ]
 
+def reset_N(N):
+    global N_X, ALPHABET, LEN_ALPHA, N_INPUT_X, EXP_ALPHA, EXP_X
+    N_X = N
+    ALPHABET = ["zero"] + ["x{}".format(x) for x in range(N_X)] + ["one"]
+    LEN_ALPHA = len(ALPHABET)
+    N_INPUT_X = 2**N_X  # number of possible values of X
+    # used to pack whole alphabet
+    EXP_ALPHA = np.logspace(
+        0, LEN_ALPHA-1, LEN_ALPHA, base=2, dtype=np.int64)
+    EXP_X = np.logspace(
+        0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
+
+    global TERMS_BASE, TERMS_FIRST_HALF, TERMS_SECOND_HALF, TERMS_HIGH
+    # TERMS = [
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i)))
+    #     for i in range(1, N_X)]
+    TERMS_BASE = ALPHABET[1:-1]
+    TERMS_FIRST_HALF = [
+        list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//4))),
+        list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//2-1)))]
+    TERMS_FIRST_HALF[0] = [
+        e for e in zip(TERMS_FIRST_HALF[0][::2], TERMS_FIRST_HALF[0][::-2])]
+    TERMS_SECOND_HALF = [
+        list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//4))),
+        list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//2-1)))]
+    TERMS_SECOND_HALF[0] = [
+        e for e in zip(TERMS_SECOND_HALF[0][::2], TERMS_SECOND_HALF[0][::-2])]
+    TERMS_HIGH = [
+        list(filter(lambda x: Expr(x).is_pair_same(),
+                    map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-2)))),
+        list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-1)))
+    ]
+
 
 if __name__ == "__main__":
     def main():
@@ -449,8 +504,16 @@ if __name__ == "__main__":
         print(e2)
         print(e1.get_all_out() == e2.get_all_out())
         """
+        reset_N(12)
+        print(N_X)
         print(TERMS_FIRST_HALF)
         print(TERMS_SECOND_HALF)
-        print(TERMS_HIGH)
+        # for e in combinations(TERMS_FIRST_HALF[0], 2):
+        #     e = Expr("+".join(e))
+        #     print(e)
+            # print(e.test_balance())
+        #     print(Expr(e).get_half_pair())
+        # print(TERMS_SECOND_HALF)
+        # print(TERMS_HIGH)
 
     main()

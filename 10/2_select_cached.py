@@ -49,7 +49,7 @@ class PermFilter(object):
         """Select and print found permutations.
         """
         cnt = 0
-        batch_size = 40000
+        batch_size = 10000
         list_ids = []
         # Try every combination of candidates.
         for ids in product(*[list(range(self.__n_cand))

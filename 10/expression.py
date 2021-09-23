@@ -391,9 +391,19 @@ TERMS_BASE = ALPHABET[1:-1]
 TERMS_FIRST_HALF = [
     list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], i))) 
     for i in range(2, N_X//2)]
+# TERMS_FIRST_HALF[1] = [
+#     "+".join(i) for i in zip(TERMS_FIRST_HALF[1][::2], TERMS_FIRST_HALF[1][::-2])
+# ]
 TERMS_SECOND_HALF = [
     list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], i))) 
     for i in range(2, N_X//2)]
+# TERMS_SECOND_HALF[1] = [
+#     "+".join(i) for i in zip(TERMS_SECOND_HALF[1][::2], TERMS_SECOND_HALF[1][::-2])
+# ]
+# TMP = len(TERMS_SECOND_HALF[1])
+# TERMS_SECOND_HALF[1] = [
+#     "+".join(i) for i in combinations(TERMS_SECOND_HALF[1], 4)
+# ]
 TERMS_HIGH = [
     list(filter(lambda x: Expr(x).is_pair_same(),
         map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-2)))),
