@@ -14,7 +14,7 @@ def main():
     cand_terms = [
         # (ep.TERMS_FIRST_HALF[0], 2),
         # (ep.TERMS_FIRST_HALF[-1], 2),
-        (ep.TERMS_SECOND_HALF[0], 2),
+        # (ep.TERMS_SECOND_HALF[0], 2),
         (ep.TERMS_SECOND_HALF[-1], 2),
     ]
     cached_exprs_grp = []
