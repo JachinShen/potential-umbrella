@@ -439,26 +439,26 @@ def reset_N(N):
     EXP_X = np.logspace(
         0, LEN_ALPHA-3, LEN_ALPHA-2, base=2, dtype=np.int64)  # used to pack x
 
-    global TERMS_BASE, TERMS_FIRST_HALF, TERMS_SECOND_HALF, TERMS_HIGH
-    # TERMS = [
-    #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i)))
-    #     for i in range(1, N_X)]
-    TERMS_BASE = ALPHABET[1:-1]
-    TERMS_FIRST_HALF = [
-        list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//4))),
-        list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//2-1)))]
-    TERMS_FIRST_HALF[0] = [
-        e for e in zip(TERMS_FIRST_HALF[0][::2], TERMS_FIRST_HALF[0][::-2])]
-    TERMS_SECOND_HALF = [
-        list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//4))),
-        list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//2-1)))]
-    TERMS_SECOND_HALF[0] = [
-        e for e in zip(TERMS_SECOND_HALF[0][::2], TERMS_SECOND_HALF[0][::-2])]
-    TERMS_HIGH = [
-        list(filter(lambda x: Expr(x).is_pair_same(),
-                    map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-2)))),
-        list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-1)))
-    ]
+    # global TERMS_BASE, TERMS_FIRST_HALF, TERMS_SECOND_HALF, TERMS_HIGH
+    # # TERMS = [
+    # #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], i)))
+    # #     for i in range(1, N_X)]
+    # TERMS_BASE = ALPHABET[1:-1]
+    # TERMS_FIRST_HALF = [
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//4))),
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:N_X//2+1], N_X//2-1)))]
+    # TERMS_FIRST_HALF[0] = [
+    #     e for e in zip(TERMS_FIRST_HALF[0][::2], TERMS_FIRST_HALF[0][::-2])]
+    # TERMS_SECOND_HALF = [
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//4))),
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[N_X//2+1:-1], N_X//2-1)))]
+    # TERMS_SECOND_HALF[0] = [
+    #     e for e in zip(TERMS_SECOND_HALF[0][::2], TERMS_SECOND_HALF[0][::-2])]
+    # TERMS_HIGH = [
+    #     list(filter(lambda x: Expr(x).is_pair_same(),
+    #                 map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-2)))),
+    #     list(map(lambda x: "".join(x), combinations(ALPHABET[1:-1], N_X-1)))
+    # ]
 
 
 if __name__ == "__main__":
