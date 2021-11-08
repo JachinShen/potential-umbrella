@@ -1,12 +1,15 @@
+import time
+import tqdm
 import numpy as np
 import expression as ep
 import group as grp
 from itertools import permutations
+from sympy.utilities.iterables import multiset_permutations
 
 
-N = 48
+N = 36
 ep.reset_N(N)
-id_perm = range(N//2, N)
+id_perm = np.array(range(N//2, N))
 first_half_set = set(id_perm)
 # all_terms_set = set(range(N))
 # basic_terms = [ep.Expr("x{}".format(i)) for i in id_perm]
@@ -18,11 +21,31 @@ first_half_set = set(id_perm)
 #     for i in id_perm]
 
 
+def fixed_point_perm_batch(perm):
+    return (perm == id_perm).any()
+
 def fixed_point_perm(perm):
     for e1, e2 in zip(perm, id_perm):
         if e1 == e2:
             return True
     return False
+
+
+def no_left_perm_batch(new_perm):
+    r = N + N//2 - 1 - id_perm
+    r_q = N + N//2 - 1 - new_perm
+    k_r_q = new_perm[r_q - N//2]
+    # print(r.shape, k_r_q.shape)
+    return (r == k_r_q).all()
+
+def no_left_perm(new_perm):
+    for p, q in zip(id_perm, new_perm):
+        r = N + N//2 - 1 - p
+        r_q = N + N//2 - 1 - q
+        k_r_q = new_perm[r_q - N//2]
+        if r != k_r_q:
+            return False
+    return True
 
 
 def left_perm(new_perm):
@@ -78,43 +101,22 @@ def left_perm(new_perm):
 print("Full:")
 full_perms = []
 cnt = 0
-# for new_perm in permutations(range(N//2, N)):
-# for cnt in range(100000):
+start_time = time.time()
+# for new_perm in tqdm.tqdm(multiset_permutations(range(N//2, N))):
+# for new_perm in tqdm.tqdm(permutations(range(N//2, N))):
 while True:
+    cnt += 1
     new_perm = np.random.permutation(range(N//2, N))
-    # print(new_perm)
+    # new_perm = np.array(new_perm)
     if fixed_point_perm(new_perm):
         continue
 
-    if left_perm(new_perm):
+    if not no_left_perm(new_perm):
         continue
 
-    # first_half_eqs = []
-    # for t1, t2 in zip(id_perm, new_perm):
-    #     left_terms = first_half_set - {t1, t2}
-    #     equation = basic_terms[t1] + (
-    #         ep.Expr("x{}+x{}".format(t1, t2)) *
-    #         ep.Expr("".join(["x{}".format(i) for i in left_terms]))
-    #     ) + basic_terms2[t1] + basic_terms3[t2]
-    #     # print(equation)
-    #     first_half_eqs.append(equation)
-    # second_half_eqs = []
-    # for t, equation in zip(id_perm, first_half_eqs[::-1]):
-    #     pair_eq = basic_terms[t] + equation.get_pair_expr()
-    #     second_half_eqs.append(pair_eq)
-
-    print(new_perm)
-    # G = grp.Group(first_half_eqs + second_half_eqs)
-    # print(G)
-    # print(G.test_permutation())
-    # full_perms.append(str(G))
-    # if G.test_permutation():
-        # print(new_perm)
-    # else:
-        # print(G)
-        # exit(0)
 
     break
-    # cnt += 1
-    # if cnt > 10:
-    #     break
+
+print(new_perm)
+print(cnt)
+print(time.time() - start_time)

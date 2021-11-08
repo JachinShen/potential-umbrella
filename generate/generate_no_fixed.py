@@ -4,7 +4,7 @@ import group as grp
 from itertools import permutations
 
 
-N = 12
+N = 24
 ep.reset_N(N)
 id_perm = range(N//2, N)
 first_half_set = set(id_perm)
@@ -82,13 +82,20 @@ for new_perm in permutations(range(N//2, N)):
     if fixed_point_perm(new_perm):
         continue
 
-    # if left_perm(new_perm):
-        # continue
+    if left_perm(new_perm):
+        continue
+
+    cnt += 1 
+    continue
 
     first_half_eqs = []
     for t1, t2 in zip(id_perm, new_perm):
         left_terms = first_half_set - {t1, t2}
-        equation = basic_terms[t1] + (
+        equation = basic_terms[t1] 
+        equation += (
+            ep.Expr("x{}+x{}".format(t1-N//2, t2-N//2)) *
+            ep.Expr("+".join(["x{}".format(i-N//2) for i in left_terms])))
+        equation += (
             ep.Expr("x{}+x{}".format(t1, t2)) *
             ep.Expr("".join(["x{}".format(i) for i in left_terms]))
         ) + basic_terms2[t1] + basic_terms3[t2]
@@ -105,9 +112,11 @@ for new_perm in permutations(range(N//2, N)):
     # full_perms.append(str(G))
     if G.test_permutation():
         print(new_perm)
+        # print(G)
     else:
         print(G)
         exit(0)
     cnt += 1
     # if cnt > 10:
     #     break
+print(cnt)
