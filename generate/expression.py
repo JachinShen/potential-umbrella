@@ -264,6 +264,33 @@ class Expr(object):
 
         return "+".join(list_str_terms)
 
+    def cpp_repr(self):
+        """Get human readable string.
+        """
+        if len(self.mat) == 0:
+            return "zero"
+        list_str_terms = []
+        for arr_term in self.mat:
+            char_id = np.nonzero(arr_term)[0]
+            if len(char_id) == 1:
+                if char_id[0] == LEN_ALPHA - 1:  # only "one"
+                    list_str_terms.append("one")
+                elif char_id[0] == 0:
+                    list_str_terms.append("zero")
+                else:
+                    list_str_terms.append(ALPHABET[char_id[0]])
+            else:  # other characters exist, ignore "one"
+                if 0 in char_id:
+                    list_str_terms.append("zero")
+                    continue
+                # char_id[-1]: "one"
+                list_str_chars = [ALPHABET[i] for i in char_id[:-1]]
+                str_term = "*".join(list_str_chars)
+                list_str_terms.append(str_term)
+
+        return "+".join(list_str_terms)
+
+
 
 class RegBatch(object):
     """Class to compute batch of expressions in a more effective way.
