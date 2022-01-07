@@ -1,10 +1,9 @@
-from torch._C import set_num_interop_threads
 import expression as ep
 import group as grp
 from itertools import permutations
 
 
-N = 24
+N = 8
 ep.reset_N(N)
 id_perm = range(N//2, N)
 first_half_set = set(id_perm)
@@ -85,8 +84,8 @@ for new_perm in permutations(range(N//2, N)):
     if left_perm(new_perm):
         continue
 
-    cnt += 1 
-    continue
+    # cnt += 1 
+    # continue
 
     first_half_eqs = []
     for t1, t2 in zip(id_perm, new_perm):
@@ -107,16 +106,21 @@ for new_perm in permutations(range(N//2, N)):
         second_half_eqs.append(pair_eq)
 
     G = grp.Group(first_half_eqs + second_half_eqs)
+    for i in range(4):
+        first_half_eqs[i] += ep.Expr("x{}".format(i))
+    for i in range(4):
+        second_half_eqs[i] += ep.Expr("x{}".format(i+4))
+    G2 = grp.Group(first_half_eqs + second_half_eqs)
     # print(G)
     # print(G.test_permutation())
     # full_perms.append(str(G))
-    if G.test_permutation():
+    if G.test_permutation() and G2.test_permutation():
         print(new_perm)
+        cnt += 1
         # print(G)
-    else:
-        print(G)
-        exit(0)
-    cnt += 1
+    # else:
+        # print(G)
+        # exit(0)
     # if cnt > 10:
     #     break
 print(cnt)

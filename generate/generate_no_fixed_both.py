@@ -3,7 +3,7 @@ import group as grp
 from itertools import permutations
 
 
-N = 12
+N = 8
 ep.reset_N(N)
 id_perm = range(N//2, N)
 first_half_set = set(id_perm)
@@ -113,12 +113,12 @@ for new_perm in permutations(range(N//2, N)):
     # for new_perm2 in permutations(range(N//2, N)):
         if fixed_point_perm(new_perm2):
             continue
-        # K2 = [N-1-e for e in new_perm2[::-1]]
-        # Kq = [new_perm2[e-N//2] for e in new_perm]
-        # pi = new_perm2
-        Kp = [new_perm2[N-1-e] for e in new_perm2]
-        # print(pi, pi2)
-        flag = any_same_perm(Kp, id_perm[::-1])
+        # Kp = [new_perm2[N-1-e] for e in new_perm2]
+        # flag = any_same_perm(Kp, id_perm[::-1])
+        Kp = [new_perm[N-1-e] for e in new_perm2[::-1]]
+        # print(new_perm2[::-1])
+        # print(Kp)
+        flag = any_same_perm(Kp, id_perm)
         # if flag != left_perm(new_perm2):
             # print(flag)
             # print(pi, pi2)
@@ -146,18 +146,21 @@ for new_perm in permutations(range(N//2, N)):
 
         G_list = first_half_eqs + second_half_eqs
         G = grp.Group(G_list)
+        G2_list = []
         for i in range(N):
-            G_list[i] += ep.Expr("x{}".format(i))
-        G2 = grp.Group(G_list)
+            G2_list.append(G_list[i] + ep.Expr("x{}".format(i)))
+        G2 = grp.Group(G2_list)
         # full_perms.append(str(G))
         K2 = new_perm2
         if G.test_permutation() and G2.test_permutation():
             cnt += 1
-            # print(G)
-            # print(G)
-            # print(G2)
+            # print(first_half_eqs)
+            # print(second_half_eqs)
+            print(G)
+            print(G2)
             print("Y ", K2)
             # break
+            # exit(0)
         else:
             print("N ", K2)
             # print(G)
